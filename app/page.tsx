@@ -1,103 +1,276 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Users,
+  Plus,
+  X,
+  Wallet,
+  ArrowRight,
+  Receipt,
+  UserPlus,
+  CreditCard,
+  ListIcon,
+  BarChart2,
+  PenLine,
+} from "lucide-react";
+import FriendCard from "./components/FriendCard";
+import FriendForm from "./components/FriendForm";
+import TransactionForm from "./components/TransactionForm";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { toast, Toaster } from "sonner";
+import Link from "next/link";
+import { useDebtStore } from "./store/store";
+import { getTotalDebt } from "./utils/statistics";
+import LoadingSpinner from "@/app/components/LoadingSpinner";
+import { cn } from "@/lib/utils";
+
+// Helper function to format currency
+const formatCurrency = (value: number) => {
+  return `${Math.abs(value).toFixed(0)} TL`;
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const {
+    friends,
+    transactions,
+    isLoading,
+    error,
+    fetchFriends,
+    fetchTransactions,
+    addFriend,
+    addTransaction,
+    deleteFriend,
+    getDebtSummaries,
+  } = useDebtStore();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const [activeForm, setActiveForm] = useState<"friend" | "transaction" | null>(
+    null
+  );
+
+  // Initial data fetching
+  useEffect(() => {
+    fetchFriends();
+    fetchTransactions();
+  }, [fetchFriends, fetchTransactions]);
+
+  const debtSummaries = getDebtSummaries();
+  const totalDebt = getTotalDebt(debtSummaries);
+
+  const toggleForm = (formType: "friend" | "transaction") => {
+    if (activeForm === formType) {
+      setActiveForm(null);
+    } else {
+      setActiveForm(formType);
+    }
+  };
+
+  if (isLoading && friends.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-[50vh]">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error && friends.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] text-center">
+        <h2 className="text-xl font-semibold text-danger-600 mb-4">
+          Bir hata oluştu
+        </h2>
+        <p className="text-muted-foreground mb-6">{error}</p>
+        <Button
+          onClick={() => {
+            fetchFriends();
+            fetchTransactions();
+          }}
+        >
+          Yeniden Dene
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto px-4">
+      {/* Header */}
+
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+              <h2 className="text-lg font-bold">Borç Takip</h2>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs h-8"
+              onClick={() =>
+                activeForm === "transaction"
+                  ? setActiveForm(null)
+                  : setActiveForm("transaction")
+              }
+            >
+              <Receipt className="w-3.5 h-3.5 mr-1" />
+              İşlem Ekle
+            </Button>
+          </div>
+
+          <p className="text-sm text-muted-foreground mb-4">
+            Arkadaşlarınızla aranızdaki borç durumunu kolayca takip edin
+          </p>
+
+          <AnimatePresence>
+            {activeForm === "transaction" && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="mb-6"
+              >
+                <Card className="border shadow-sm overflow-hidden">
+                  <CardContent className="p-5">
+                    <TransactionForm
+                      friends={friends}
+                      onAddTransaction={(transaction) => {
+                        return addTransaction(transaction).then(
+                          (newTransaction) => {
+                            setActiveForm(null);
+                            toast.success("İşlem başarıyla kaydedildi");
+                            return newTransaction;
+                          }
+                        );
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {activeForm === "friend" && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="mb-6"
+              >
+                <Card className="border shadow-sm overflow-hidden">
+                  <CardContent className="p-5">
+                    <FriendForm
+                      onAddFriend={(friend) => {
+                        return addFriend(friend).then((newFriend) => {
+                          setActiveForm(null);
+                          toast.success("Arkadaş başarıyla eklendi");
+                          return newFriend;
+                        });
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="mt-4">
+            <h2 className="text-lg font-medium mb-3 flex items-center gap-2">
+              <Users className="w-4 h-4 text-primary" />
+              Borç Durumu
+            </h2>
+
+            {debtSummaries.length === 0 ? (
+              <Card className="bg-gradient-to-r from-gray-50 to-transparent p-6 text-center">
+                <p className="text-muted-foreground mb-3">
+                  Henüz arkadaş eklenmemiş.
+                </p>
+                <Button
+                  onClick={() => toggleForm("friend")}
+                  size="sm"
+                  variant="outline"
+                  className="mx-auto"
+                >
+                  <UserPlus className="mr-1 h-3.5 w-3.5" />
+                  Arkadaş Ekle
+                </Button>
+              </Card>
+            ) : (
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+                {debtSummaries.map((summary) => (
+                  <FriendCard
+                    key={summary.friendId}
+                    debtSummary={summary}
+                    onDelete={deleteFriend}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <div className="lg:col-span-1">
+          <Card className="mb-4">
+            <CardContent className="p-4">
+              <h2 className="text-base font-medium flex items-center mb-3">
+                <Wallet className="mr-2 h-4 w-4 text-primary" />
+                Genel Bakış
+              </h2>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white shadow-sm rounded-md p-3 border">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Toplam Alacak
+                  </p>
+                  <p className="text-lg font-bold text-success-600">
+                    {formatCurrency(totalDebt.totalOwed)}
+                  </p>
+                </div>
+
+                <div className="bg-white shadow-sm rounded-md p-3 border">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Toplam Borç
+                  </p>
+                  <p className="text-lg font-bold text-danger-600">
+                    {formatCurrency(totalDebt.totalOwing)}
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full mt-3 text-xs"
+                asChild
+              >
+                <Link
+                  href="/dashboard"
+                  className="flex items-center justify-center"
+                >
+                  Detaylı İstatistikler
+                  <ArrowRight className="ml-1 h-3 w-3" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Button
+            onClick={() => toggleForm("friend")}
+            size="sm"
+            variant="outline"
+            className="w-full h-9 mb-4"
+          >
+            <UserPlus className="mr-1 h-3.5 w-3.5" />
+            Arkadaş Ekle
+          </Button>
+        </div>
+      </div>
+      <Toaster />
     </div>
   );
 }

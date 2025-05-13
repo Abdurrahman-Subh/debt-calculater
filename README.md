@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BorçTakip (Debt Tracker)
+
+A simple debt tracking application that helps you manage debts between friends. Built with Next.js, React, TypeScript, and Firebase.
+
+## Features
+
+- Add and manage friends
+- Record different types of transactions (borrowed money, lent money, and payments)
+- Collapsible transaction form for better UI experience
+- Visual debt summaries with color coding
+- Detailed statistics dashboard with charts
+- Firebase backend for data persistence
+- Mobile-responsive design
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, React, TypeScript, TailwindCSS
+- **UI Components**: Shadcn/UI
+- **State Management**: Zustand
+- **Backend**: Firebase Firestore
+- **API**: Next.js API routes
+- **Animations**: Framer Motion
+- **Charts**: Recharts
+- **Icons**: Lucide React
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 18 or higher
+- npm or yarn
+- Firebase account
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   git clone https://github.com/yourusername/debt-tracker.git
+   cd debt-tracker
+   ```
 
-## Learn More
+2. Install dependencies:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   # or
+   yarn
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Create a Firebase project:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project
+   - Add a web app to your project
+   - Enable Firestore database
 
-## Deploy on Vercel
+4. Create a `.env.local` file with your Firebase configuration:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain_here
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id_here
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket_here
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id_here
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id_here
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+5. Run the development server:
+
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Usage
+
+1. Add friends using the "Arkadaş Ekle" button
+2. Add transactions by clicking "İşlem Ekle" button
+3. View debt summaries on the home page
+4. See detailed statistics in the dashboard
+
+## App Structure
+
+- `/app` - Next.js App Router structure
+  - `/api` - API routes for Firebase operations
+  - `/components` - Reusable UI components
+  - `/lib` - Firebase configuration
+  - `/store` - Zustand state management
+  - `/types` - TypeScript type definitions
+  - `/utils` - Utility functions
+
+## License
+
+MIT
