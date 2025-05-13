@@ -23,7 +23,7 @@ import { motion } from "framer-motion";
 import { Transaction, Friend } from "@/app/types";
 import { useDebtStore } from "@/app/store/store";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
-import ShareLink from "@/app/components/ShareLink";
+import ShareMenu from "@/app/components/ShareMenu";
 import TransactionForm from "@/app/components/TransactionForm";
 import {
   Dialog,
@@ -199,7 +199,7 @@ export default function TransactionDetailClient({
             Düzenle
           </Button>
 
-          <ShareLink
+          <ShareMenu
             type="transaction"
             id={transaction.id}
             name={

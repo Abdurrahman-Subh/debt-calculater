@@ -197,7 +197,7 @@ export default function Transactions() {
           className="bg-card rounded-lg p-6 text-center mb-6"
         >
           <p className="text-muted-foreground">
-            İşlem eklemek için önce arkadaş eklemelisiniz.
+            İşlem eklemek için önce kişi eklemelisiniz.
           </p>
         </motion.div>
       )}

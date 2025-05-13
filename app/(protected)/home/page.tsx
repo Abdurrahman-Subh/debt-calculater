@@ -166,7 +166,7 @@ export default function Home() {
                       onAddFriend={(friend: any) => {
                         return addFriend(friend).then((newFriend: any) => {
                           setActiveForm(null);
-                          toast.success("Arkadaş başarıyla eklendi");
+                          toast.success("Kişi başarıyla eklendi");
                           return newFriend;
                         });
                       }}
@@ -192,7 +192,7 @@ export default function Home() {
               >
                 <Link href="/friends">
                   <Settings className="w-3.5 h-3.5 mr-1" />
-                  Arkadaş Yönetimi
+                  Kişi Yönetimi
                 </Link>
               </Button>
             </div>
@@ -200,7 +200,7 @@ export default function Home() {
             {debtSummaries.length === 0 ? (
               <Card className="bg-gradient-to-r from-gray-50 to-transparent p-6 text-center">
                 <p className="text-muted-foreground mb-3">
-                  Henüz arkadaş eklenmemiş.
+                  Henüz kişi eklenmemiş.
                 </p>
                 <Button
                   onClick={() => toggleForm("friend")}
@@ -209,7 +209,7 @@ export default function Home() {
                   className="mx-auto"
                 >
                   <UserPlus className="mr-1 h-3.5 w-3.5" />
-                  Arkadaş Ekle
+                  Kişi Ekle
                 </Button>
               </Card>
             ) : (
@@ -274,7 +274,7 @@ export default function Home() {
             className="w-full h-9 mb-4"
           >
             <UserPlus className="mr-1 h-3.5 w-3.5" />
-            Arkadaş Ekle
+            Kişiler Ekle
           </Button>
         </div>
       </div>

@@ -15,6 +15,7 @@ import { Share, Check, Copy, Link } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import QRCodeDisplay from "./QRCodeDisplay";
+import WhatsAppShare from "./WhatsAppShare";
 
 interface ShareLinkProps {
   type: "friend" | "transaction";
@@ -85,6 +86,13 @@ export default function ShareLink({ type, id, name }: ShareLinkProps) {
           <span className="hidden sm:inline">Paylaş</span>
         </Button>
 
+        <WhatsAppShare
+          type={type}
+          name={name}
+          shareUrl={shareUrl}
+          iconOnly={true}
+        />
+
         <QRCodeDisplay
           title={
             type === "friend" ? `${name} ile Borç Durumu` : `İşlem: ${name}`
@@ -133,15 +141,23 @@ export default function ShareLink({ type, id, name }: ShareLinkProps) {
               </div>
             </div>
           </div>
-          <DialogFooter className="sm:justify-start">
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
             <Button
               type="button"
               variant="secondary"
               size="sm"
               onClick={handleCopy}
+              className="w-full sm:w-auto"
             >
               {copied ? "Kopyalandı" : "Kopyala"}
             </Button>
+
+            <WhatsAppShare
+              type={type}
+              name={name}
+              shareUrl={shareUrl}
+              iconOnly={false}
+            />
           </DialogFooter>
         </DialogContent>
       </Dialog>

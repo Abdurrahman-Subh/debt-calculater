@@ -14,6 +14,7 @@ import QRCode from "react-qr-code";
 import { motion } from "framer-motion";
 import { Download, QrCode, Share, Copy } from "lucide-react";
 import { toast } from "sonner";
+import WhatsAppShare from "./WhatsAppShare";
 
 interface QRCodeDisplayProps {
   title: string;
@@ -95,6 +96,19 @@ export default function QRCodeDisplay({
     }
   };
 
+  // Determine type and name for WhatsAppShare from title
+  const getShareInfo = () => {
+    const isFriend = title.includes("Borç Durumu");
+    const type = isFriend ? "friend" : "transaction";
+    const name = isFriend
+      ? title.replace(" ile Borç Durumu", "")
+      : title.replace("İşlem: ", "");
+
+    return { type, name };
+  };
+
+  const { type, name } = getShareInfo();
+
   return (
     <>
       <Button
@@ -163,6 +177,13 @@ export default function QRCodeDisplay({
               <Download className="mr-2 h-4 w-4" />
               QR Kodu İndir
             </Button>
+
+            <WhatsAppShare
+              type={type as "friend" | "transaction"}
+              name={name}
+              shareUrl={shareUrl}
+              iconOnly={false}
+            />
           </DialogFooter>
         </DialogContent>
       </Dialog>

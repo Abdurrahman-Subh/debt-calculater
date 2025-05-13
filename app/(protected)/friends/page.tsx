@@ -112,7 +112,7 @@ export default function FriendsManagement() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold flex items-center text-foreground">
           <Users className="mr-2 h-7 w-7" />
-          Arkadaşlar
+          Kişiler
         </h1>
         <Button onClick={toggleFriendForm}>
           {showFriendForm ? (
@@ -123,7 +123,7 @@ export default function FriendsManagement() {
           ) : (
             <>
               <UserPlus className="mr-2 h-4 w-4" />
-              Arkadaş Ekle
+              Kişi Ekle
             </>
           )}
         </Button>
@@ -146,7 +146,7 @@ export default function FriendsManagement() {
                   onAddFriend={(friend) => {
                     return addFriend(friend).then((newFriend) => {
                       setShowFriendForm(false);
-                      toast.success("Arkadaş başarıyla eklendi");
+                      toast.success("Kişi başarıyla eklendi");
                       return newFriend;
                     });
                   }}
@@ -165,9 +165,7 @@ export default function FriendsManagement() {
 
         {debtSummaries.length === 0 ? (
           <Card className="bg-gradient-to-r from-gray-50 to-transparent p-6 text-center">
-            <p className="text-muted-foreground mb-3">
-              Henüz arkadaş eklenmemiş.
-            </p>
+            <p className="text-muted-foreground mb-3">Henüz kişi eklenmemiş.</p>
             <Button
               onClick={() => setShowFriendForm(true)}
               size="sm"
@@ -175,7 +173,7 @@ export default function FriendsManagement() {
               className="mx-auto"
             >
               <UserPlus className="mr-1 h-3.5 w-3.5" />
-              Arkadaş Ekle
+              Kişi Ekle
             </Button>
           </Card>
         ) : (
@@ -198,7 +196,7 @@ export default function FriendsManagement() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              Arkadaşı Sil
+              Kişiyi Sil
             </DialogTitle>
             <DialogDescription>
               Gerçekten{" "}

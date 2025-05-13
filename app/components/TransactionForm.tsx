@@ -310,7 +310,14 @@ const TransactionForm = ({
               <CreditCard className="h-3.5 w-3.5 text-primary" />
               İşlem Tipi
             </Label>
-            <div className="grid grid-cols-3 gap-3">
+            <div
+              className={cn(
+                "grid",
+                isEditing
+                  ? "grid-cols-2 gap-3"
+                  : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4"
+              )}
+            >
               {transactionTypes.map((option) => (
                 <motion.button
                   key={option.value}
@@ -319,7 +326,7 @@ const TransactionForm = ({
                   whileHover={{ y: -2 }}
                   whileTap={{ y: 1 }}
                   className={cn(
-                    "relative overflow-hidden flex items-center justify-center py-2 px-3 rounded-lg border text-sm h-14 transition-all duration-200",
+                    "relative overflow-hidden flex items-center justify-center py-2 px-3 rounded-lg border text-sm h-10 transition-all duration-200",
                     option.hoverColor,
                     type === option.value
                       ? cn(
@@ -392,7 +399,7 @@ const TransactionForm = ({
                   </Select>
                 ) : (
                   <div className="text-sm text-muted-foreground border rounded-md p-2 bg-muted">
-                    Önce arkadaş eklemeniz gerekiyor
+                    Önce kişi eklemeniz gerekiyor
                   </div>
                 )}
               </div>

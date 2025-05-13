@@ -59,8 +59,8 @@ const FriendForm = ({
       );
       toast.error(
         isEditing
-          ? "Arkadaş güncellenirken bir hata oluştu"
-          : "Arkadaş eklenirken bir hata oluştu"
+          ? "Kişi güncellenirken bir hata oluştu"
+          : "Kişi eklenirken bir hata oluştu"
       );
     } finally {
       setIsSubmitting(false);
@@ -80,21 +80,21 @@ const FriendForm = ({
           <UserPlus className="text-primary h-5 w-5 mr-2" />
         )}
         <h2 className="text-lg font-medium">
-          {isEditing ? "Arkadaşı Düzenle" : "Yeni Arkadaş Ekle"}
+          {isEditing ? "Kişiyi Düzenle" : "Yeni Kişi Ekle"}
         </h2>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="friendName" className="text-sm text-gray-500">
-            Arkadaş Adı
+            Kişi Adı
           </Label>
           <Input
             id="friendName"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Arkadaş adını girin"
-            aria-label="Arkadaş adı"
+            placeholder="Kişi adını girin"
+            aria-label="Kişi adı"
             className="bg-white"
           />
         </div>
@@ -109,8 +109,8 @@ const FriendForm = ({
               ? "Güncelleniyor..."
               : "Ekleniyor..."
             : isEditing
-            ? "Arkadaşı Güncelle"
-            : "Arkadaş Ekle"}
+            ? "Kişi Güncelle"
+            : "Kişi Ekle"}
         </Button>
       </form>
     </motion.div>
