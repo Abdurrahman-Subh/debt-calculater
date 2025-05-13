@@ -34,11 +34,11 @@ export interface RecurringTransactionSettings {
 
 export interface Transaction {
   id: string;
-  friendId: string;
+  friendId?: string; // Optional for expense transactions
   amount: number;
   description: string;
   date: string;
-  type: "borrowed" | "lent" | "payment";
+  type: "borrowed" | "lent" | "payment" | "expense";
   userId: string;
   category?: TransactionCategory;
   recurring?: RecurringTransactionSettings;
@@ -53,4 +53,14 @@ export interface DebtSummary {
   totalLent: number;
   totalPayments: number;
   transactions: Transaction[];
+}
+
+// Expense summary interface for personal expense tracking
+export interface ExpenseSummary {
+  totalExpenses: number;
+  byCategory: {
+    category: TransactionCategory;
+    amount: number;
+    percentage: number;
+  }[];
 }

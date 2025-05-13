@@ -12,6 +12,7 @@ import {
   Friend,
   DebtSummary,
   TransactionCategory,
+  ExpenseSummary,
 } from "../types";
 
 export interface MonthlyStats {
@@ -19,6 +20,7 @@ export interface MonthlyStats {
   totalBorrowed: number;
   totalLent: number;
   totalPayments: number;
+  totalExpenses: number;
   netBalance: number;
 }
 
@@ -36,6 +38,7 @@ export interface CategoryStats {
   totalAmount: number;
   borrowedAmount: number;
   lentAmount: number;
+  expenseAmount: number;
   count: number;
   percentage: number;
 }
@@ -69,6 +72,10 @@ export function getMonthlyStatistics(
       .filter((t) => t.type === "payment")
       .reduce((sum, t) => sum + t.amount, 0);
 
+    const totalExpenses = monthTransactions
+      .filter((t) => t.type === "expense")
+      .reduce((sum, t) => sum + t.amount, 0);
+
     const netBalance = totalBorrowed - totalLent - totalPayments;
 
     stats.push({
@@ -76,6 +83,7 @@ export function getMonthlyStatistics(
       totalBorrowed,
       totalLent,
       totalPayments,
+      totalExpenses,
       netBalance,
     });
   }
@@ -165,7 +173,7 @@ export function getCategoryStatistics(
   filter?: {
     startDate?: Date;
     endDate?: Date;
-    transactionType?: "borrowed" | "lent" | "payment";
+    transactionType?: "borrowed" | "lent" | "payment" | "expense";
   }
 ): CategoryStats[] {
   // Filter transactions if filter parameters are provided
@@ -196,6 +204,7 @@ export function getCategoryStatistics(
       totalAmount: number;
       borrowedAmount: number;
       lentAmount: number;
+      expenseAmount: number;
       count: number;
     }
   >();
@@ -219,6 +228,7 @@ export function getCategoryStatistics(
       totalAmount: 0,
       borrowedAmount: 0,
       lentAmount: 0,
+      expenseAmount: 0,
       count: 0,
     });
   });
@@ -235,6 +245,9 @@ export function getCategoryStatistics(
     } else if (transaction.type === "lent") {
       current.lentAmount += transaction.amount;
       current.totalAmount -= transaction.amount;
+    } else if (transaction.type === "expense") {
+      current.expenseAmount += transaction.amount;
+      current.totalAmount -= transaction.amount; // Count expenses as negative in total balance
     }
 
     current.count += 1;
@@ -255,11 +268,15 @@ export function getCategoryStatistics(
 
   // Convert to array and calculate percentages
   const result: CategoryStats[] = Array.from(categoryMap.entries()).map(
-    ([category, { totalAmount, borrowedAmount, lentAmount, count }]) => ({
+    ([
+      category,
+      { totalAmount, borrowedAmount, lentAmount, expenseAmount, count },
+    ]) => ({
       category,
       totalAmount,
       borrowedAmount,
       lentAmount,
+      expenseAmount,
       count,
       percentage:
         totalAbsoluteAmount > 0
@@ -272,4 +289,71 @@ export function getCategoryStatistics(
   return result.sort(
     (a, b) => Math.abs(b.totalAmount) - Math.abs(a.totalAmount)
   );
+}
+
+export function getExpenseSummary(
+  transactions: Transaction[],
+  timeRange?: {
+    startDate: Date;
+    endDate: Date;
+  }
+): ExpenseSummary {
+  // Filter only expense transactions
+  let expenses = transactions.filter((t) => t.type === "expense");
+
+  // Apply time range filter if provided
+  if (timeRange) {
+    expenses = expenses.filter((t) => {
+      const transactionDate = new Date(t.date);
+      return isWithinInterval(transactionDate, {
+        start: timeRange.startDate,
+        end: timeRange.endDate,
+      });
+    });
+  }
+
+  // Calculate total expenses
+  const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
+
+  // Group by category
+  const categoryMap = new Map<TransactionCategory, number>();
+
+  // Initialize all categories with zero
+  const allCategories: TransactionCategory[] = [
+    "food",
+    "entertainment",
+    "rent",
+    "transportation",
+    "shopping",
+    "utilities",
+    "healthcare",
+    "education",
+    "travel",
+    "other",
+  ];
+  allCategories.forEach((category) => categoryMap.set(category, 0));
+
+  // Sum expenses by category
+  expenses.forEach((expense) => {
+    const category = expense.category || "other";
+    categoryMap.set(
+      category,
+      (categoryMap.get(category) || 0) + expense.amount
+    );
+  });
+
+  // Convert to array with percentages
+  const byCategory = Array.from(categoryMap.entries())
+    .map(([category, amount]) => ({
+      category,
+      amount,
+      percentage: totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0,
+    }))
+    .filter((item) => item.amount > 0) // Only include categories with expenses
+    .sort((a, b) => b.amount - a.amount); // Sort by amount descending
+
+  return {
+    totalExpenses,
+    byCategory,
+  };
 }

@@ -115,7 +115,9 @@ const TransactionForm = ({
 
     // If we have an initial transaction (for editing), populate the form
     if (initialTransaction) {
-      setFriendId(initialTransaction.friendId);
+      if (initialTransaction.friendId) {
+        setFriendId(initialTransaction.friendId);
+      }
       setAmount(initialTransaction.amount.toString());
       setDescription(initialTransaction.description);
       setType(initialTransaction.type);
@@ -152,7 +154,7 @@ const TransactionForm = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!friendId) {
+    if (type !== "expense" && !friendId) {
       toast.error("Lütfen bir arkadaş seçin");
       return;
     }
@@ -169,13 +171,17 @@ const TransactionForm = ({
 
       // Prepare transaction data
       const transactionData: Omit<Transaction, "id" | "userId"> = {
-        friendId,
         amount: numAmount,
         description,
         date: new Date().toISOString(),
         type,
         category,
       };
+
+      // Add friendId only for non-expense transactions
+      if (type !== "expense") {
+        transactionData.friendId = friendId;
+      }
 
       // Add recurring settings if enabled
       if (isRecurring) {
@@ -198,17 +204,31 @@ const TransactionForm = ({
       }
 
       // Success notification with formatted currency
-      const friendName =
-        friends.find((f) => f.id === friendId)?.name || "Arkadaş";
       const typeText =
         type === "borrowed"
           ? "borç verdiniz"
           : type === "lent"
           ? "borç aldınız"
+          : type === "expense"
+          ? "harcama kaydettiniz"
           : "ödeme yaptınız";
-      toast.success(
-        `${friendName}'a ${formatCurrency(numAmount, true)} ${typeText}`
-      );
+
+      let successMessage = "";
+      if (type === "expense") {
+        successMessage = `${formatCurrency(
+          numAmount,
+          true
+        )} kişisel harcama kaydedildi`;
+      } else {
+        const friendName =
+          friends.find((f) => f.id === friendId)?.name || "Arkadaş";
+        successMessage = `${friendName}'a ${formatCurrency(
+          numAmount,
+          true
+        )} ${typeText}`;
+      }
+
+      toast.success(successMessage);
     } catch (error) {
       console.error("Error adding transaction:", error);
       toast.error("İşlem kaydedilirken bir hata oluştu");
@@ -216,6 +236,12 @@ const TransactionForm = ({
       setIsSubmitting(false);
     }
   };
+
+  // Helper to determine if this is a recurring transaction
+  const isRecurringTransaction = isRecurring;
+
+  // Should display friend field (hidden for expenses)
+  const shouldShowFriendField = type !== "expense";
 
   const transactionTypes = [
     {
@@ -247,6 +273,16 @@ const TransactionForm = ({
       hoverColor: "hover:shadow-md hover:shadow-blue-200",
       bgColor: "bg-blue-50",
       iconColor: "text-blue-600",
+    },
+    {
+      value: "expense",
+      label: "Harcama",
+      icon: <DollarSign className="h-4 w-4" />,
+      color: "from-purple-500 to-violet-500",
+      activeColor: "from-purple-600 to-violet-600",
+      hoverColor: "hover:shadow-md hover:shadow-purple-200",
+      bgColor: "bg-purple-50",
+      iconColor: "text-purple-600",
     },
   ];
 
@@ -323,42 +359,44 @@ const TransactionForm = ({
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label
-                htmlFor="friend"
-                className="text-sm font-medium flex items-center gap-1 text-gray-600"
-              >
-                <User className="h-3.5 w-3.5 text-primary" />
-                Arkadaş
-              </Label>
-              {friends.length > 0 ? (
-                <Select
-                  value={friendId}
-                  onValueChange={setFriendId}
-                  disabled={isSubmitting || !!initialFriendId}
+            {shouldShowFriendField && (
+              <div className="space-y-2">
+                <Label
+                  htmlFor="friend"
+                  className="text-sm font-medium flex items-center gap-1 text-gray-600"
                 >
-                  <SelectTrigger
-                    id="friend"
-                    className="w-full border-gray-200 focus:ring-primary"
+                  <User className="h-3.5 w-3.5 text-primary" />
+                  Arkadaş
+                </Label>
+                {friends.length > 0 ? (
+                  <Select
+                    value={friendId}
+                    onValueChange={setFriendId}
+                    disabled={isSubmitting || !!initialFriendId}
                   >
-                    <SelectValue placeholder="Arkadaş seçin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {friends.map((friend) => (
-                        <SelectItem key={friend.id} value={friend.id}>
-                          {friend.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="text-sm text-muted-foreground border rounded-md p-2 bg-muted">
-                  Önce arkadaş eklemeniz gerekiyor
-                </div>
-              )}
-            </div>
+                    <SelectTrigger
+                      id="friend"
+                      className="w-full border-gray-200 focus:ring-primary"
+                    >
+                      <SelectValue placeholder="Arkadaş seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {friends.map((friend) => (
+                          <SelectItem key={friend.id} value={friend.id}>
+                            {friend.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="text-sm text-muted-foreground border rounded-md p-2 bg-muted">
+                    Önce arkadaş eklemeniz gerekiyor
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label
@@ -586,7 +624,7 @@ const TransactionForm = ({
 
           <Button
             type="submit"
-            disabled={isSubmitting || !friendId || !amount}
+            disabled={isSubmitting || !amount}
             className="w-full"
           >
             {isSubmitting

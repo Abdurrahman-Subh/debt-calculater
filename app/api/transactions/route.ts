@@ -149,20 +149,31 @@ export async function POST(request: Request) {
     const { friendId, amount, type, description, date, category, recurring } =
       body;
 
-    if (!friendId || !amount || !type || !date) {
+    if (!amount || !type || !date) {
       return NextResponse.json(
         {
-          error: "Friend ID, amount, type, and date are required",
+          error: "Amount, type, and date are required",
+        },
+        { status: 400 }
+      );
+    }
+
+    // For non-expense transactions, friendId is required
+    if (type !== "expense" && !friendId) {
+      return NextResponse.json(
+        {
+          error: "Friend ID is required for non-expense transactions",
         },
         { status: 400 }
       );
     }
 
     // Validate transaction type
-    if (!["borrowed", "lent", "payment"].includes(type)) {
+    if (!["borrowed", "lent", "payment", "expense"].includes(type)) {
       return NextResponse.json(
         {
-          error: "Transaction type must be one of: borrowed, lent, payment",
+          error:
+            "Transaction type must be one of: borrowed, lent, payment, expense",
         },
         { status: 400 }
       );
@@ -188,7 +199,6 @@ export async function POST(request: Request) {
     }
 
     const transactionData: Record<string, any> = {
-      friendId,
       amount: Number(amount),
       type,
       description: description || "",
@@ -196,6 +206,11 @@ export async function POST(request: Request) {
       userId: effectiveUserId,
       createdAt: new Date().toISOString(),
     };
+
+    // Add friendId only for non-expense transactions
+    if (type !== "expense" && friendId) {
+      transactionData.friendId = friendId;
+    }
 
     // Add optional fields if they exist
     if (category) {

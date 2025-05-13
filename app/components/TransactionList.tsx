@@ -90,7 +90,8 @@ const TransactionList = ({
     });
   };
 
-  const getFriendName = (friendId: string) => {
+  const getFriendName = (friendId?: string) => {
+    if (!friendId) return "Kişisel Harcama";
     const friend = friends.find((f) => f.id === friendId);
     return friend ? friend.name : "Bilinmeyen Arkadaş";
   };
@@ -103,6 +104,8 @@ const TransactionList = ({
         return "Borç Alma";
       case "payment":
         return "Ödeme";
+      case "expense":
+        return "Harcama";
       default:
         return "";
     }
@@ -115,6 +118,8 @@ const TransactionList = ({
       case "lent":
         return <PiggyBank className="h-4 w-4" />;
       case "payment":
+        return <Coins className="h-4 w-4" />;
+      case "expense":
         return <Coins className="h-4 w-4" />;
       default:
         return null;
@@ -129,6 +134,8 @@ const TransactionList = ({
         return "bg-danger-100 text-danger-800 border-danger-200";
       case "payment":
         return "bg-primary-100 text-primary-800 border-primary-200";
+      case "expense":
+        return "bg-purple-100 text-purple-800 border-purple-200";
       default:
         return "bg-muted text-muted-foreground";
     }
@@ -142,6 +149,8 @@ const TransactionList = ({
         return "bg-gradient-to-r from-danger-50 to-background border-l-4 border-danger-400";
       case "payment":
         return "bg-gradient-to-r from-primary-50 to-background border-l-4 border-primary-400";
+      case "expense":
+        return "bg-gradient-to-r from-purple-50 to-background border-l-4 border-purple-400";
       default:
         return "bg-background";
     }

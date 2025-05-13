@@ -46,6 +46,11 @@ const Header = () => {
       icon: <ListIcon className="h-4 w-4 mr-2" />,
     },
     {
+      href: "/expenses",
+      label: "Harcamalar",
+      icon: <CreditCard className="h-4 w-4 mr-2" />,
+    },
+    {
       href: "/dashboard",
       label: "İstatistikler",
       icon: <BarChart4 className="h-4 w-4 mr-2" />,
