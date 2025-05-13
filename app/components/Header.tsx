@@ -12,6 +12,7 @@ import {
   LogIn,
   LogOut,
   User,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "../context/AuthContext";
@@ -35,6 +36,11 @@ const Header = () => {
       href: "/home",
       label: "Ana Sayfa",
       icon: <CoinsIcon className="h-4 w-4 mr-2" />,
+    },
+    {
+      href: "/friends",
+      label: "Arkadaşlar",
+      icon: <Users className="h-4 w-4 mr-2" />,
     },
     {
       href: "/transactions",

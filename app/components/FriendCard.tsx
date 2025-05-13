@@ -1,145 +1,136 @@
 "use client";
 
-import { DebtSummary } from "../types";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-  Trash2,
-  ArrowRight,
+  User,
+  ArrowUpRight,
   BanknoteIcon,
   PiggyBank,
-  User,
+  Trash2,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { formatCurrency } from "../utils/currency";
+import { DebtSummary } from "../types";
 
 interface FriendCardProps {
   debtSummary: DebtSummary;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
+  showControls?: boolean;
 }
 
-const FriendCard = ({ debtSummary, onDelete }: FriendCardProps) => {
-  const { friendId, friendName, balance } = debtSummary;
-
-  const handleDelete = () => {
-    if (window.confirm(`Gerçekten ${friendName} silmek istiyor musunuz?`)) {
-      onDelete(friendId);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      window.location.href = `/friend/${friendId}`;
-    }
-  };
-
-  // Determine color scheme based on balance
-  const cardStyle = {
-    borderColor:
-      balance > 0
-        ? "var(--success-500)"
-        : balance < 0
-        ? "var(--danger-500)"
-        : "var(--border)",
-    borderWidth: "2px",
-    borderStyle: "solid",
-    transition: "all 0.3s ease",
-  };
-
-  const bgGradient =
-    balance > 0
-      ? "bg-gradient-to-br from-success-50 to-background"
-      : balance < 0
-      ? "bg-gradient-to-br from-danger-50 to-background"
-      : "";
+export default function FriendCard({
+  debtSummary,
+  onDelete,
+  showControls = false,
+}: FriendCardProps) {
+  const {
+    friendId,
+    friendName,
+    balance,
+    totalBorrowed,
+    totalLent,
+    totalPayments,
+  } = debtSummary;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      whileHover={{
-        scale: 1.02,
-        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
-      }}
-      className="h-full"
     >
-      <Card
-        className={`h-full ${bgGradient} overflow-hidden`}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        style={cardStyle}
-      >
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-xl font-semibold text-foreground flex items-center">
-            <User className="h-5 w-5 mr-2 text-muted-foreground" />
-            {friendName}
-          </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleDelete}
-            aria-label={`${friendName} sil`}
-            className="cursor-pointer"
-          >
-            <Trash2 className="h-5 w-5" />
-          </Button>
-        </CardHeader>
+      <Card className="border overflow-hidden h-full">
+        <CardContent className="p-4">
+          <div className="flex justify-between items-start mb-3">
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 p-2 rounded-full">
+                <User className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="font-medium">{friendName}</h3>
+            </div>
 
-        <CardContent>
-          <div className="flex items-center mt-2 mb-4">
+            <div className="flex gap-1">
+              {showControls && onDelete && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => onDelete(friendId)}
+                  aria-label={`${friendName} sil`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                <Link
+                  href={`/friend/${friendId}`}
+                  aria-label={`${friendName} detaylar`}
+                >
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          <div
+            className={cn(
+              "px-3 py-2 rounded-md mb-3 flex items-center gap-2",
+              balance > 0
+                ? "bg-green-50 text-green-700"
+                : balance < 0
+                ? "bg-red-50 text-red-700"
+                : "bg-gray-50 text-gray-700"
+            )}
+          >
             {balance > 0 ? (
-              <div className="flex items-center w-full bg-success-100 rounded-lg p-4">
-                <BanknoteIcon className="h-10 w-10 text-success-600 mr-3" />
-                <div>
-                  <p className="text-sm text-success-800">Alacak</p>
-                  <p className="text-green-600 font-medium text-2xl">
-                    {balance} <span className="text-sm">TL</span>
-                  </p>
-                </div>
-              </div>
+              <>
+                <BanknoteIcon className="h-4 w-4" />
+                <p className="text-sm font-medium">
+                  <span className="font-bold">
+                    {formatCurrency(balance, true)}
+                  </span>{" "}
+                  size borçlu
+                </p>
+              </>
             ) : balance < 0 ? (
-              <div className="flex items-center w-full bg-danger-100 rounded-lg p-4">
-                <PiggyBank className="h-10 w-10 text-danger-600 mr-3" />
-                <div>
-                  <p className="text-sm text-danger-800">Borç</p>
-                  <p className="text-danger-600 font-medium text-2xl">
-                    {Math.abs(balance)} <span className="text-sm">TL</span>
-                  </p>
-                </div>
-              </div>
+              <>
+                <PiggyBank className="h-4 w-4" />
+                <p className="text-sm font-medium">
+                  <span className="font-bold">
+                    {formatCurrency(Math.abs(balance), true)}
+                  </span>{" "}
+                  borçlusunuz
+                </p>
+              </>
             ) : (
-              <div className="flex items-center w-full bg-muted rounded-lg p-4">
-                <User className="h-10 w-10 text-muted-foreground mr-3" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Durum</p>
-                  <p className="text-muted-foreground font-medium">Borç yok</p>
-                </div>
-              </div>
+              <p className="text-sm font-medium">Borç yok</p>
             )}
           </div>
-        </CardContent>
 
-        <CardFooter className="pt-0">
-          <Button variant="outline" className="w-full" asChild>
-            <Link
-              href={`/friend/${friendId}`}
-              className="flex items-center justify-center"
-            >
-              Detayları Görüntüle <ArrowRight className="ml-1 h-4 w-4" />
-            </Link>
-          </Button>
-        </CardFooter>
+          <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+            <div className="flex flex-col">
+              <span className="font-semibold text-foreground">
+                {formatCurrency(totalBorrowed, true)}
+              </span>
+              <span>Verilen</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-semibold text-foreground">
+                {formatCurrency(totalLent, true)}
+              </span>
+              <span>Alınan</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-semibold text-foreground">
+                {formatCurrency(totalPayments, true)}
+              </span>
+              <span>Ödenen</span>
+            </div>
+          </div>
+        </CardContent>
       </Card>
     </motion.div>
   );
-};
-
-export default FriendCard;
+}

@@ -10,15 +10,24 @@ import {
   BanknoteIcon,
   PiggyBank,
   User,
+  AlertTriangle,
 } from "lucide-react";
 import TransactionList from "../../components/TransactionList";
 import TransactionForm from "../../components/TransactionForm";
 import FirestoreIndexError from "../../components/FirestoreIndexError";
 import { useDebtStore } from "../../store/store";
-import { DebtSummary } from "../../types";
+import { DebtSummary, Transaction } from "../../types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface FriendDetailClientProps {
   friendId: string;
@@ -38,10 +47,10 @@ export default function FriendDetailClient({
   } = useDebtStore();
 
   const [friendSummary, setFriendSummary] = useState<DebtSummary | null>(null);
-  const [transactions, setTransactions] = useState<
-    ReturnType<typeof getTransactionsForFriend>
-  >([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  // Effect to update the friend summary and transactions when the store data changes
   useEffect(() => {
     // Find the friend
     const summary = getDebtSummaries().find((s) => s.friendId === friendId);
@@ -58,15 +67,28 @@ export default function FriendDetailClient({
     return null; // Will redirect in the useEffect
   }
 
-  const handleDelete = () => {
-    if (
-      window.confirm(
-        `Gerçekten ${friendSummary.friendName} silmek istiyor musunuz? Tüm işlem geçmişi de silinecektir.`
-      )
-    ) {
-      deleteFriend(friendSummary.friendId);
-      router.push("/");
-    }
+  const handleDeleteDialogOpen = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteDialogClose = () => {
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleDeleteConfirm = () => {
+    deleteFriend(friendSummary.friendId);
+    setIsDeleteDialogOpen(false);
+    router.push("/");
+  };
+
+  // Handle adding a transaction with immediate UI update
+  const handleAddTransaction = async (
+    transaction: Omit<Transaction, "id" | "userId">
+  ) => {
+    const newTransaction = await addTransaction(transaction);
+    // We don't need to manually update the transactions list since useEffect will handle that
+    // Just return the new transaction for any toast notifications
+    return newTransaction;
   };
 
   return (
@@ -74,7 +96,7 @@ export default function FriendDetailClient({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col gap-6 p-4"
+      className="flex flex-col gap-6 p-4 max-w-4xl mx-auto"
     >
       <div className="flex items-center gap-2">
         <Button variant="outline" size="icon" asChild>
@@ -129,7 +151,7 @@ export default function FriendDetailClient({
             <Button
               variant="ghost"
               size="icon"
-              onClick={handleDelete}
+              onClick={handleDeleteDialogOpen}
               aria-label={`${friendSummary.friendName} sil`}
             >
               <Trash2 className="h-5 w-5 text-destructive" />
@@ -140,7 +162,7 @@ export default function FriendDetailClient({
 
       <TransactionForm
         friends={friends}
-        onAddTransaction={addTransaction}
+        onAddTransaction={handleAddTransaction}
         initialFriendId={friendSummary.friendId}
       />
 
@@ -151,6 +173,32 @@ export default function FriendDetailClient({
           onDeleteTransaction={deleteTransaction}
         />
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Arkadaşı Sil
+            </DialogTitle>
+            <DialogDescription>
+              Gerçekten{" "}
+              <span className="font-semibold">{friendSummary.friendName}</span>{" "}
+              silmek istiyor musunuz? Bu işlem geri alınamaz ve tüm işlem
+              geçmişi de silinecektir.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-row justify-end gap-2 sm:justify-end">
+            <Button variant="outline" onClick={handleDeleteDialogClose}>
+              Vazgeç
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              Sil
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Toaster />
     </motion.div>

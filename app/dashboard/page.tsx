@@ -17,6 +17,7 @@ import MonthlyBalanceChart from "../components/MonthlyBalanceChart";
 import StatCard from "../components/StatCard";
 import FirestoreIndexError from "../components/FirestoreIndexError";
 import { useDebtStore } from "../store/store";
+import { formatCurrency } from "../utils/currency";
 import {
   getFriendStatisticsByMonth,
   getMonthlyStatistics,
@@ -68,11 +69,6 @@ export default function Dashboard() {
   const lentChange = hasHistory
     ? calculateChange(currentMonthStat.totalLent, prevMonthStat.totalLent)
     : 0;
-
-  // Format number as currency
-  const formatCurrency = (value: number) => {
-    return `${Math.abs(value).toFixed(0)} TL`;
-  };
 
   return (
     <motion.div

@@ -1,37 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Users,
-  Plus,
-  X,
-  Wallet,
-  ArrowRight,
-  Receipt,
-  UserPlus,
-  CreditCard,
-  ListIcon,
-  BarChart2,
-  PenLine,
-} from "lucide-react";
+import FirestoreIndexError from "@/app/components/FirestoreIndexError";
 import FriendCard from "@/app/components/FriendCard";
 import FriendForm from "@/app/components/FriendForm";
+import LoadingSpinner from "@/app/components/LoadingSpinner";
 import TransactionForm from "@/app/components/TransactionForm";
-import FirestoreIndexError from "@/app/components/FirestoreIndexError";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { toast, Toaster } from "sonner";
-import Link from "next/link";
 import { useDebtStore } from "@/app/store/store";
 import { getTotalDebt } from "@/app/utils/statistics";
-import LoadingSpinner from "@/app/components/LoadingSpinner";
-import { cn } from "@/lib/utils";
-
-// Helper function to format currency
-const formatCurrency = (value: number) => {
-  return `${Math.abs(value).toFixed(0)} TL`;
-};
+import { formatCurrency } from "@/app/utils/currency";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight,
+  Receipt,
+  Settings,
+  UserPlus,
+  Users,
+  Wallet,
+} from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast, Toaster } from "sonner";
 
 export default function Home() {
   const {
@@ -184,10 +174,24 @@ export default function Home() {
           </AnimatePresence>
 
           <div className="mt-4">
-            <h2 className="text-lg font-medium mb-3 flex items-center gap-2">
-              <Users className="w-4 h-4 text-primary" />
-              Borç Durumu
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-medium flex items-center gap-2">
+                <Users className="w-4 h-4 text-primary" />
+                Borç Durumu
+              </h2>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs h-8"
+                asChild
+              >
+                <Link href="/friends">
+                  <Settings className="w-3.5 h-3.5 mr-1" />
+                  Arkadaş Yönetimi
+                </Link>
+              </Button>
+            </div>
 
             {debtSummaries.length === 0 ? (
               <Card className="bg-gradient-to-r from-gray-50 to-transparent p-6 text-center">
@@ -207,11 +211,7 @@ export default function Home() {
             ) : (
               <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                 {debtSummaries.map((summary: any) => (
-                  <FriendCard
-                    key={summary.friendId}
-                    debtSummary={summary}
-                    onDelete={deleteFriend}
-                  />
+                  <FriendCard key={summary.friendId} debtSummary={summary} />
                 ))}
               </div>
             )}

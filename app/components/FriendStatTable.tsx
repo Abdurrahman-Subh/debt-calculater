@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "../utils/currency";
 import { FriendMonthlyStats } from "../utils/statistics";
 import { Button } from "@/components/ui/button";
 
@@ -74,15 +75,17 @@ const FriendStatTable = ({ data, monthName }: FriendStatTableProps) => {
                     </td>
                     <td className="py-3 px-2 text-right font-medium text-success-600">
                       {friend.totalBorrowed > 0
-                        ? `${friend.totalBorrowed} TL`
+                        ? formatCurrency(friend.totalBorrowed, true)
                         : "-"}
                     </td>
                     <td className="py-3 px-2 text-right font-medium text-danger-600">
-                      {friend.totalLent > 0 ? `${friend.totalLent} TL` : "-"}
+                      {friend.totalLent > 0
+                        ? formatCurrency(friend.totalLent, true)
+                        : "-"}
                     </td>
                     <td className="py-3 px-2 text-right font-medium text-accent-600">
                       {friend.totalPayments > 0
-                        ? `${friend.totalPayments} TL`
+                        ? formatCurrency(friend.totalPayments, true)
                         : "-"}
                     </td>
                     <td className="py-3 px-2 text-right font-medium">
@@ -103,7 +106,7 @@ const FriendStatTable = ({ data, monthName }: FriendStatTableProps) => {
                           }
                         >
                           {friend.netBalance !== 0
-                            ? `${Math.abs(friend.netBalance)} TL`
+                            ? formatCurrency(Math.abs(friend.netBalance), true)
                             : "-"}
                         </span>
                       </div>
