@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 interface TransactionFormProps {
   friends: Friend[];
   onAddTransaction: (
-    transaction: Omit<Transaction, "id">
+    transaction: Omit<Transaction, "id" | "userId">
   ) => Promise<Transaction>;
   initialFriendId?: string;
 }
@@ -49,6 +49,15 @@ const TransactionForm = ({
     }
   }, [initialFriendId]);
 
+  const resetForm = () => {
+    if (!initialFriendId) {
+      setFriendId("");
+    }
+    setAmount("");
+    setDescription("");
+    setType("borrowed");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -65,7 +74,7 @@ const TransactionForm = ({
     setIsSubmitting(true);
 
     try {
-      await onAddTransaction({
+      const result = await onAddTransaction({
         friendId,
         amount: parseFloat(amount),
         description,
@@ -73,10 +82,23 @@ const TransactionForm = ({
         type,
       });
 
-      // Form reset is handled in parent component
+      // Reset form after successful submission
+      resetForm();
+
+      // Success notification
+      const friendName =
+        friends.find((f) => f.id === friendId)?.name || "Arkadaş";
+      const typeText =
+        type === "borrowed"
+          ? "borç verdiniz"
+          : type === "lent"
+          ? "borç aldınız"
+          : "ödeme yaptınız";
+      toast.success(`${friendName}'a ${amount} TL ${typeText}`);
     } catch (error) {
       console.error("Error adding transaction:", error);
       toast.error("İşlem kaydedilirken bir hata oluştu");
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -156,7 +178,11 @@ const TransactionForm = ({
           <Label htmlFor="friend" className="text-sm text-gray-500">
             Arkadaş
           </Label>
-          <Select value={friendId} onValueChange={setFriendId}>
+          <Select
+            value={friendId}
+            onValueChange={setFriendId}
+            disabled={!!initialFriendId || isSubmitting}
+          >
             <SelectTrigger className="w-full bg-white">
               <SelectValue placeholder="Arkadaş seçin" />
             </SelectTrigger>
@@ -189,6 +215,7 @@ const TransactionForm = ({
               placeholder="0.00"
               min="0"
               step="0.01"
+              disabled={isSubmitting}
             />
           </div>
         </div>
@@ -203,6 +230,7 @@ const TransactionForm = ({
             onChange={(e) => setDescription(e.target.value)}
             placeholder="İşlem açıklaması..."
             className="resize-none h-24 bg-white"
+            disabled={isSubmitting}
           />
         </div>
 

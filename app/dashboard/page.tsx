@@ -1,28 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { Toaster } from "@/components/ui/sonner";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
+import { motion } from "framer-motion";
 import {
-  TrendingUp,
-  TrendingDown,
-  PiggyBank,
   BarChart4,
   DollarSign,
-  Calendar,
+  TrendingDown,
+  TrendingUp,
   Wallet,
 } from "lucide-react";
+import { useState } from "react";
+import FriendStatTable from "../components/FriendStatTable";
+import MonthlyBalanceChart from "../components/MonthlyBalanceChart";
+import StatCard from "../components/StatCard";
+import FirestoreIndexError from "../components/FirestoreIndexError";
 import { useDebtStore } from "../store/store";
 import {
-  getMonthlyStatistics,
   getFriendStatisticsByMonth,
+  getMonthlyStatistics,
   getTotalDebt,
 } from "../utils/statistics";
-import StatCard from "../components/StatCard";
-import MonthlyBalanceChart from "../components/MonthlyBalanceChart";
-import FriendStatTable from "../components/FriendStatTable";
-import { Toaster } from "@/components/ui/sonner";
 
 export default function Dashboard() {
   const { friends, transactions } = useDebtStore();
@@ -70,10 +69,6 @@ export default function Dashboard() {
     ? calculateChange(currentMonthStat.totalLent, prevMonthStat.totalLent)
     : 0;
 
-  const balanceChange = hasHistory
-    ? calculateChange(totalDebt.netBalance, prevMonthStat.netBalance)
-    : 0;
-
   // Format number as currency
   const formatCurrency = (value: number) => {
     return `${Math.abs(value).toFixed(0)} TL`;
@@ -84,7 +79,7 @@ export default function Dashboard() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="space-y-8"
+      className="space-y-8 p-4"
     >
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold flex items-center text-foreground">
@@ -92,6 +87,8 @@ export default function Dashboard() {
           Borç İstatistikleri
         </h1>
       </div>
+
+      <FirestoreIndexError />
 
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard

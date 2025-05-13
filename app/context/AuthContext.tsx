@@ -7,6 +7,9 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   signOut as firebaseSignOut,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { auth } from "../lib/firebase";
@@ -15,6 +18,12 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (
+    email: string,
+    password: string,
+    displayName: string
+  ) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -48,6 +57,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithEmail = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push("/home");
+    } catch (error) {
+      console.error("Error signing in with email:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signUpWithEmail = async (
+    email: string,
+    password: string,
+    displayName: string
+  ) => {
+    try {
+      setLoading(true);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      // Update the user profile with display name
+      await updateProfile(userCredential.user, {
+        displayName: displayName,
+      });
+      router.push("/home");
+    } catch (error) {
+      console.error("Error signing up with email:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOut = async () => {
     try {
       setLoading(true);
@@ -65,6 +112,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     loading,
     signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
     signOut,
   };
 

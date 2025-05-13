@@ -1,25 +1,31 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { motion } from "framer-motion";
-import { CreditCard, Mail } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast, Toaster } from "sonner";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { useAuth } from "../context/AuthContext";
+import { CreditCard, Mail, User } from "lucide-react";
+import { toast, Toaster } from "sonner";
+import Link from "next/link";
 
-export default function SignIn() {
-  const { user, loading, signInWithGoogle, signInWithEmail } = useAuth();
-  const [signingIn, setSigningIn] = useState(false);
+export default function Register() {
+  const { user, loading, signInWithGoogle, signUpWithEmail } = useAuth();
+  const [registering, setRegistering] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [formErrors, setFormErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const router = useRouter();
 
   // Redirect if already signed in
@@ -31,59 +37,77 @@ export default function SignIn() {
 
   const validateForm = () => {
     let isValid = true;
-    setEmailError("");
-    setPasswordError("");
+    const errors = {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    };
+
+    if (!name.trim()) {
+      errors.name = "Ad Soyad gereklidir";
+      isValid = false;
+    }
 
     if (!email.trim()) {
-      setEmailError("Email gereklidir");
+      errors.email = "Email gereklidir";
       isValid = false;
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError("Geçerli bir email adresi giriniz");
+      errors.email = "Geçerli bir email adresi giriniz";
       isValid = false;
     }
 
     if (!password) {
-      setPasswordError("Şifre gereklidir");
+      errors.password = "Şifre gereklidir";
       isValid = false;
     } else if (password.length < 6) {
-      setPasswordError("Şifre en az 6 karakter olmalıdır");
+      errors.password = "Şifre en az 6 karakter olmalıdır";
       isValid = false;
     }
 
+    if (!confirmPassword) {
+      errors.confirmPassword = "Şifre onayı gereklidir";
+      isValid = false;
+    } else if (password !== confirmPassword) {
+      errors.confirmPassword = "Şifreler eşleşmiyor";
+      isValid = false;
+    }
+
+    setFormErrors(errors);
     return isValid;
   };
 
-  const handleEmailSignIn = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
     try {
-      setSigningIn(true);
-      await signInWithEmail(email, password);
-      toast.success("Başarıyla giriş yapıldı");
+      setRegistering(true);
+      await signUpWithEmail(email, password, name);
+      toast.success("Hesabınız başarıyla oluşturuldu");
     } catch (error: any) {
-      console.error("Error signing in:", error);
-      if (error.code === "auth/invalid-credential") {
-        toast.error("Geçersiz email veya şifre");
+      console.error("Error signing up:", error);
+      if (error.code === "auth/email-already-in-use") {
+        toast.error("Bu email adresi zaten kullanımda");
       } else {
-        toast.error("Giriş başarısız oldu. Lütfen tekrar deneyin.");
+        toast.error("Kayıt başarısız oldu. Lütfen tekrar deneyin.");
       }
     } finally {
-      setSigningIn(false);
+      setRegistering(false);
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignUp = async () => {
     try {
-      setSigningIn(true);
+      setRegistering(true);
       await signInWithGoogle();
-      toast.success("Başarıyla giriş yapıldı");
+      toast.success("Google hesabınızla başarıyla kayıt oldunuz");
     } catch (error) {
-      console.error("Error signing in:", error);
-      toast.error("Giriş başarısız oldu. Lütfen tekrar deneyin.");
+      console.error("Error signing up with Google:", error);
+      toast.error("Kayıt başarısız oldu. Lütfen tekrar deneyin.");
     } finally {
-      setSigningIn(false);
+      setRegistering(false);
     }
   };
 
@@ -110,15 +134,30 @@ export default function SignIn() {
                 <CreditCard className="w-6 h-6 text-primary" />
               </div>
               <h1 className="text-2xl font-semibold text-primary mb-2">
-                BorçTakip
+                Hesap Oluştur
               </h1>
               <p className="text-gray-500 text-sm mb-2">
-                Arkadaşlarınızla borç takibi yapmanın en kolay yolu
+                BorçTakip'e hemen üye olun
               </p>
               <div className="w-16 h-1 bg-primary-100 rounded-full"></div>
             </div>
 
-            <form onSubmit={handleEmailSignIn} className="space-y-4 mb-6">
+            <form onSubmit={handleRegister} className="space-y-4 mb-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">Ad Soyad</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Ad Soyad"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={formErrors.name ? "border-red-500" : ""}
+                />
+                {formErrors.name && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -127,47 +166,60 @@ export default function SignIn() {
                   placeholder="ornek@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={emailError ? "border-red-500" : ""}
+                  className={formErrors.email ? "border-red-500" : ""}
                 />
-                {emailError && (
-                  <p className="text-red-500 text-xs mt-1">{emailError}</p>
+                {formErrors.email && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formErrors.email}
+                  </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="password">Şifre</Label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-primary hover:underline"
-                  >
-                    Şifremi Unuttum
-                  </Link>
-                </div>
+                <Label htmlFor="password">Şifre</Label>
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={passwordError ? "border-red-500" : ""}
+                  className={formErrors.password ? "border-red-500" : ""}
                 />
-                {passwordError && (
-                  <p className="text-red-500 text-xs mt-1">{passwordError}</p>
+                {formErrors.password && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formErrors.password}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Şifre Tekrar</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={formErrors.confirmPassword ? "border-red-500" : ""}
+                />
+                {formErrors.confirmPassword && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formErrors.confirmPassword}
+                  </p>
                 )}
               </div>
 
               <Button
                 type="submit"
                 className="w-full py-5"
-                disabled={signingIn}
+                disabled={registering}
               >
-                {signingIn ? (
+                {registering ? (
                   <LoadingSpinner className="w-5 h-5" showText={false} />
                 ) : (
                   <>
-                    <Mail className="mr-2 h-4 w-4" />
-                    <span>Email ile Giriş Yap</span>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Hesap Oluştur</span>
                   </>
                 )}
               </Button>
@@ -183,12 +235,12 @@ export default function SignIn() {
             </div>
 
             <Button
-              onClick={handleGoogleSignIn}
+              onClick={handleGoogleSignUp}
               variant="outline"
               className="w-full flex items-center justify-center gap-2 mb-6 py-5"
-              disabled={signingIn}
+              disabled={registering}
             >
-              {signingIn ? (
+              {registering ? (
                 <LoadingSpinner className="w-5 h-5" showText={false} />
               ) : (
                 <>
@@ -214,19 +266,19 @@ export default function SignIn() {
                       fill="#EA4335"
                     />
                   </svg>
-                  <span>Google ile Giriş Yap</span>
+                  <span>Google ile Kaydol</span>
                 </>
               )}
             </Button>
 
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
-                Hesabınız yok mu?{" "}
+                Zaten bir hesabınız var mı?{" "}
                 <Link
-                  href="/register"
+                  href="/signin"
                   className="text-primary font-medium hover:underline"
                 >
-                  Kaydol
+                  Giriş Yap
                 </Link>
               </p>
             </div>

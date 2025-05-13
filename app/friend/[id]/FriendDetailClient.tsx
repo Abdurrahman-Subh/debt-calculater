@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import TransactionList from "../../components/TransactionList";
 import TransactionForm from "../../components/TransactionForm";
+import FirestoreIndexError from "../../components/FirestoreIndexError";
 import { useDebtStore } from "../../store/store";
 import { DebtSummary } from "../../types";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,7 +74,7 @@ export default function FriendDetailClient({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col gap-6"
+      className="flex flex-col gap-6 p-4"
     >
       <div className="flex items-center gap-2">
         <Button variant="outline" size="icon" asChild>
@@ -86,6 +87,8 @@ export default function FriendDetailClient({
           {friendSummary.friendName}
         </h1>
       </div>
+
+      <FirestoreIndexError />
 
       <Card>
         <CardContent className="pt-6">

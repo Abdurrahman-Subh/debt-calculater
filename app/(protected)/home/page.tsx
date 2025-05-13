@@ -18,6 +18,7 @@ import {
 import FriendCard from "@/app/components/FriendCard";
 import FriendForm from "@/app/components/FriendForm";
 import TransactionForm from "@/app/components/TransactionForm";
+import FirestoreIndexError from "@/app/components/FirestoreIndexError";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast, Toaster } from "sonner";
@@ -95,8 +96,11 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4">
+    <div className="max-w-6xl mx-auto p-4">
       {/* Header */}
+
+      {/* FirestoreIndexError */}
+      <FirestoreIndexError />
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

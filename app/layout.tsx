@@ -36,7 +36,7 @@ export default function RootLayout({
         <AuthProvider>
           <Header />
 
-          <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 relative">
+          <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-0 relative">
             {children}
           </main>
 

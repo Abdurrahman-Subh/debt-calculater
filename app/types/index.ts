@@ -1,6 +1,7 @@
 export interface Friend {
   id: string;
   name: string;
+  userId: string;
 }
 
 export interface Transaction {
@@ -10,10 +11,15 @@ export interface Transaction {
   description: string;
   date: string;
   type: "borrowed" | "lent" | "payment";
+  userId: string;
 }
 
 export interface DebtSummary {
   friendId: string;
   friendName: string;
   balance: number; // Positive: they owe you, Negative: you owe them
+  totalBorrowed: number;
+  totalLent: number;
+  totalPayments: number;
+  transactions: Transaction[];
 }

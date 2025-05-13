@@ -7,30 +7,118 @@ import {
   query,
   where,
   orderBy,
+  FirestoreError,
 } from "firebase/firestore";
+
+// Helper function to extract user ID from authorization header
+function getUserIdFromHeader(request: Request) {
+  try {
+    const authHeader = request.headers.get("authorization");
+    console.log("Auth header present:", !!authHeader);
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      // Extract the token
+      const token = authHeader.substring(7);
+      if (token && token.length > 0) {
+        return token;
+      }
+    }
+
+    // If we're here, either no auth header or invalid format
+    console.log("No valid auth header found");
+    return null;
+  } catch (error) {
+    console.error("Error extracting user ID from header:", error);
+    return null;
+  }
+}
+
+// Helper function to handle Firestore index errors and extract the creation URL
+function handleIndexError(error: any): {
+  message: string;
+  indexUrl: string | null;
+} {
+  if (
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    error.code === "failed-precondition"
+  ) {
+    // This is likely an index error
+    const errorMessage = error.toString();
+    const urlMatch = errorMessage.match(
+      /https:\/\/console\.firebase\.google\.com[^\s]+/
+    );
+    if (urlMatch) {
+      return {
+        message:
+          "This query requires a Firestore index. Click the link in the error message to create it.",
+        indexUrl: urlMatch[0],
+      };
+    }
+  }
+
+  return {
+    message: error instanceof Error ? error.message : String(error),
+    indexUrl: null,
+  };
+}
 
 // GET all transactions
 export async function GET(request: Request) {
+  console.log("Transaction API: GET request received");
   const { searchParams } = new URL(request.url);
   const friendId = searchParams.get("friendId");
+
+  // Get user ID from authorization header
+  const userId = getUserIdFromHeader(request);
+
+  // For debugging only - in production you would not use a fallback ID
+  // This is for development to help identify auth issues
+  const effectiveUserId = userId || "dev-fallback-id";
+  console.log("Using user ID:", effectiveUserId);
+
+  if (!userId) {
+    console.warn(
+      "No user ID found in request - using fallback ID for development"
+    );
+    // In production you would return an error here:
+    /*
+    return NextResponse.json(
+      { error: "Unauthorized - you must be logged in" },
+      { status: 401 }
+    );
+    */
+  }
 
   try {
     const transactionsCollection = collection(db, "transactions");
     let queryRef;
 
+    // Always filter by userId first
     if (friendId) {
-      // Get transactions for a specific friend
+      // Get transactions for a specific friend and the current user
+      console.log(
+        `Querying transactions for friend: ${friendId} and user: ${effectiveUserId}`
+      );
       queryRef = query(
         transactionsCollection,
+        where("userId", "==", effectiveUserId),
         where("friendId", "==", friendId),
         orderBy("date", "desc")
       );
     } else {
-      // Get all transactions
-      queryRef = query(transactionsCollection, orderBy("date", "desc"));
+      // Get all transactions for the current user
+      console.log(`Querying all transactions for user: ${effectiveUserId}`);
+      queryRef = query(
+        transactionsCollection,
+        where("userId", "==", effectiveUserId),
+        orderBy("date", "desc")
+      );
     }
 
     const snapshot = await getDocs(queryRef);
+    console.log(`Found ${snapshot.docs.length} transactions`);
 
     const transactions = snapshot.docs.map((doc) => ({
       id: doc.id,
@@ -40,8 +128,15 @@ export async function GET(request: Request) {
     return NextResponse.json(transactions);
   } catch (error) {
     console.error("Error fetching transactions:", error);
+
+    // Handle Firestore index errors specifically
+    const { message, indexUrl } = handleIndexError(error);
+
     return NextResponse.json(
-      { error: "Failed to fetch transactions" },
+      {
+        error: `Failed to fetch transactions: ${message}`,
+        indexUrl: indexUrl, // Include the index creation URL if available
+      },
       { status: 500 }
     );
   }
@@ -72,6 +167,25 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get user ID from authorization header
+    const userId = getUserIdFromHeader(request);
+
+    // For debugging only - in production you would not use a fallback ID
+    const effectiveUserId = userId || "dev-fallback-id";
+
+    if (!userId) {
+      console.warn(
+        "No user ID found in POST request - using fallback ID for development"
+      );
+      // In production you would return an error here
+      /*
+      return NextResponse.json(
+        { error: "Unauthorized - you must be logged in" },
+        { status: 401 }
+      );
+      */
+    }
+
     const transactionsCollection = collection(db, "transactions");
     const docRef = await addDoc(transactionsCollection, {
       friendId,
@@ -79,6 +193,7 @@ export async function POST(request: Request) {
       type,
       description: description || "",
       date,
+      userId: effectiveUserId, // Associate the transaction with the current user
       createdAt: new Date().toISOString(),
     });
 
@@ -90,14 +205,22 @@ export async function POST(request: Request) {
         type,
         description: description || "",
         date,
+        userId: effectiveUserId, // Include userId in the response
         createdAt: new Date().toISOString(),
       },
       { status: 201 }
     );
   } catch (error) {
     console.error("Error adding transaction:", error);
+
+    // Handle Firestore index errors specifically
+    const { message, indexUrl } = handleIndexError(error);
+
     return NextResponse.json(
-      { error: "Failed to add transaction" },
+      {
+        error: `Failed to add transaction: ${message}`,
+        indexUrl: indexUrl, // Include the index creation URL if available
+      },
       { status: 500 }
     );
   }

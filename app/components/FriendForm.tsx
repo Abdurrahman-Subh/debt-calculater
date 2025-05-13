@@ -10,7 +10,7 @@ import { Friend } from "../types";
 import { toast } from "sonner";
 
 interface FriendFormProps {
-  onAddFriend: (friend: Omit<Friend, "id">) => Promise<Friend>;
+  onAddFriend: (friend: Omit<Friend, "id" | "userId">) => Promise<Friend>;
 }
 
 const FriendForm = ({ onAddFriend }: FriendFormProps) => {

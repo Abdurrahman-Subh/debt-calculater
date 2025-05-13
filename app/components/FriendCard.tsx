@@ -87,8 +87,9 @@ const FriendCard = ({ debtSummary, onDelete }: FriendCardProps) => {
             size="icon"
             onClick={handleDelete}
             aria-label={`${friendName} sil`}
+            className="cursor-pointer"
           >
-            <Trash2 className="h-5 w-5 text-destructive" />
+            <Trash2 className="h-5 w-5" />
           </Button>
         </CardHeader>
 
