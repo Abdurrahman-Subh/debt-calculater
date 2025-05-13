@@ -14,13 +14,20 @@ import {
   TagIcon,
   FilterIcon,
   XIcon,
+  Edit2,
 } from "lucide-react";
 import TransactionList from "../../components/TransactionList";
 import TransactionForm from "../../components/TransactionForm";
 import FirestoreIndexError from "../../components/FirestoreIndexError";
 import ShareLink from "../../components/ShareLink";
+import FriendForm from "../../components/FriendForm";
 import { useDebtStore } from "../../store/store";
-import { DebtSummary, Transaction, TransactionCategory } from "../../types";
+import {
+  DebtSummary,
+  Transaction,
+  TransactionCategory,
+  Friend,
+} from "../../types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "sonner";
@@ -91,6 +98,7 @@ export default function FriendDetailClient({
     addTransaction,
     deleteTransaction,
     deleteFriend,
+    updateFriend,
     getTransactionsForFriend,
     getDebtSummaries,
   } = useDebtStore();
@@ -101,6 +109,7 @@ export default function FriendDetailClient({
     Transaction[]
   >([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<
     TransactionCategory | "all"
   >("all");
@@ -176,7 +185,16 @@ export default function FriendDetailClient({
           <User className="mr-2 h-6 w-6" />
           {friendSummary.friendName}
         </h1>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setIsEditDialogOpen(true)}
+            className="h-9 w-9"
+            aria-label="Arkadaşı düzenle"
+          >
+            <Edit2 className="h-4 w-4 text-primary" />
+          </Button>
           <ShareLink
             type="friend"
             id={friendSummary.friendId}
@@ -322,6 +340,34 @@ export default function FriendDetailClient({
               Sil
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Friend Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit2 className="h-5 w-5 text-primary" />
+              Arkadaşı Düzenle
+            </DialogTitle>
+            <DialogDescription>
+              {friendSummary.friendName} için yeni bir isim girin.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <FriendForm
+              onAddFriend={() => Promise.resolve({} as Friend)} // Not used
+              onUpdateFriend={updateFriend}
+              initialFriend={{
+                id: friendSummary.friendId,
+                name: friendSummary.friendName,
+                userId: "", // Not needed for update
+              }}
+              isEditing={true}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 

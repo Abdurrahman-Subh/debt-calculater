@@ -2,7 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Friend, Transaction, TransactionCategory } from "../types";
+import {
+  Friend,
+  Transaction,
+  TransactionCategory,
+  RecurrenceInterval,
+} from "../types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,10 +28,13 @@ import {
   User,
   PenLine,
   TagIcon,
+  RepeatIcon,
+  Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "../utils/currency";
+import { getRecurrenceText } from "../utils/recurringTransactions";
 
 interface TransactionFormProps {
   friends: Friend[];
@@ -34,6 +42,8 @@ interface TransactionFormProps {
     transaction: Omit<Transaction, "id" | "userId">
   ) => Promise<Transaction>;
   initialFriendId?: string;
+  initialTransaction?: Transaction;
+  isEditing?: boolean;
 }
 
 // Category configuration with colors and icons
@@ -78,6 +88,8 @@ const TransactionForm = ({
   friends,
   onAddTransaction,
   initialFriendId,
+  initialTransaction,
+  isEditing = false,
 }: TransactionFormProps) => {
   const [friendId, setFriendId] = useState(initialFriendId || "");
   const [amount, setAmount] = useState("");
@@ -86,11 +98,41 @@ const TransactionForm = ({
   const [category, setCategory] = useState<TransactionCategory>("other");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Recurring transaction state
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceInterval, setRecurrenceInterval] =
+    useState<RecurrenceInterval>("monthly");
+  const [startDate, setStartDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [endDate, setEndDate] = useState("");
+  const [hasEndDate, setHasEndDate] = useState(false);
+
   useEffect(() => {
     if (initialFriendId) {
       setFriendId(initialFriendId);
     }
-  }, [initialFriendId]);
+
+    // If we have an initial transaction (for editing), populate the form
+    if (initialTransaction) {
+      setFriendId(initialTransaction.friendId);
+      setAmount(initialTransaction.amount.toString());
+      setDescription(initialTransaction.description);
+      setType(initialTransaction.type);
+      setCategory(initialTransaction.category || "other");
+
+      // Set recurring transaction fields if present
+      if (initialTransaction.recurring) {
+        setIsRecurring(initialTransaction.recurring.isRecurring);
+        setRecurrenceInterval(initialTransaction.recurring.interval);
+        setStartDate(initialTransaction.recurring.startDate.split("T")[0]);
+        if (initialTransaction.recurring.endDate) {
+          setHasEndDate(true);
+          setEndDate(initialTransaction.recurring.endDate.split("T")[0]);
+        }
+      }
+    }
+  }, [initialFriendId, initialTransaction]);
 
   const resetForm = () => {
     if (!initialFriendId) {
@@ -100,6 +142,11 @@ const TransactionForm = ({
     setDescription("");
     setType("borrowed");
     setCategory("other");
+    setIsRecurring(false);
+    setRecurrenceInterval("monthly");
+    setStartDate(new Date().toISOString().split("T")[0]);
+    setEndDate("");
+    setHasEndDate(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,17 +166,36 @@ const TransactionForm = ({
 
     try {
       const numAmount = parseFloat(amount);
-      const result = await onAddTransaction({
+
+      // Prepare transaction data
+      const transactionData: Omit<Transaction, "id" | "userId"> = {
         friendId,
         amount: numAmount,
         description,
         date: new Date().toISOString(),
         type,
         category,
-      });
+      };
+
+      // Add recurring settings if enabled
+      if (isRecurring) {
+        transactionData.recurring = {
+          isRecurring: true,
+          interval: recurrenceInterval,
+          startDate: new Date(startDate).toISOString(),
+        };
+
+        if (hasEndDate && endDate) {
+          transactionData.recurring.endDate = new Date(endDate).toISOString();
+        }
+      }
+
+      const result = await onAddTransaction(transactionData);
 
       // Reset form after successful submission
-      resetForm();
+      if (!isEditing) {
+        resetForm();
+      }
 
       // Success notification with formatted currency
       const friendName =
@@ -198,7 +264,7 @@ const TransactionForm = ({
         <div className="mb-5 flex items-center border-b pb-4">
           <DollarSign className="text-primary h-5 w-5 mr-2" />
           <h2 className="text-lg font-semibold text-gray-800">
-            Yeni İşlem Ekle
+            {isEditing ? "İşlem Düzenle" : "Yeni İşlem Ekle"}
           </h2>
         </div>
 
@@ -359,6 +425,147 @@ const TransactionForm = ({
             </Select>
           </div>
 
+          {/* Recurring Transaction Controls */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label
+                htmlFor="isRecurring"
+                className="text-sm font-medium flex items-center gap-1 text-gray-600"
+              >
+                <RepeatIcon className="h-3.5 w-3.5 text-primary" />
+                Tekrarlayan İşlem
+              </Label>
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant={isRecurring ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsRecurring(true)}
+                  className={cn(
+                    "text-xs h-8",
+                    !isRecurring && "text-muted-foreground"
+                  )}
+                >
+                  Evet
+                </Button>
+                <Button
+                  type="button"
+                  variant={!isRecurring ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsRecurring(false)}
+                  className={cn(
+                    "text-xs h-8",
+                    isRecurring && "text-muted-foreground"
+                  )}
+                >
+                  Hayır
+                </Button>
+              </div>
+            </div>
+
+            {isRecurring && (
+              <div className="rounded-lg border bg-muted/50 p-3 space-y-3">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="recurrenceInterval"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Tekrarlama Sıklığı
+                  </Label>
+                  <Select
+                    value={recurrenceInterval}
+                    onValueChange={(value) =>
+                      setRecurrenceInterval(value as RecurrenceInterval)
+                    }
+                  >
+                    <SelectTrigger
+                      id="recurrenceInterval"
+                      className="w-full border-gray-200 focus:ring-primary"
+                    >
+                      <SelectValue placeholder="Tekrarlama Sıklığı Seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="daily">
+                          {getRecurrenceText("daily")}
+                        </SelectItem>
+                        <SelectItem value="weekly">
+                          {getRecurrenceText("weekly")}
+                        </SelectItem>
+                        <SelectItem value="biweekly">
+                          {getRecurrenceText("biweekly")}
+                        </SelectItem>
+                        <SelectItem value="monthly">
+                          {getRecurrenceText("monthly")}
+                        </SelectItem>
+                        <SelectItem value="quarterly">
+                          {getRecurrenceText("quarterly")}
+                        </SelectItem>
+                        <SelectItem value="yearly">
+                          {getRecurrenceText("yearly")}
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="startDate"
+                      className="text-xs text-muted-foreground flex items-center gap-1"
+                    >
+                      <Calendar className="h-3 w-3" />
+                      Başlangıç Tarihi
+                    </Label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="text-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label
+                        htmlFor="endDate"
+                        className="text-xs text-muted-foreground flex items-center gap-1"
+                      >
+                        <Calendar className="h-3 w-3" />
+                        Bitiş Tarihi
+                      </Label>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          id="hasEndDate"
+                          checked={hasEndDate}
+                          onChange={(e) => setHasEndDate(e.target.checked)}
+                          className="h-3 w-3"
+                        />
+                        <Label
+                          htmlFor="hasEndDate"
+                          className="text-xs cursor-pointer"
+                        >
+                          Belirle
+                        </Label>
+                      </div>
+                    </div>
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="text-sm"
+                      disabled={!hasEndDate}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label
               htmlFor="description"
@@ -382,7 +589,11 @@ const TransactionForm = ({
             disabled={isSubmitting || !friendId || !amount}
             className="w-full"
           >
-            {isSubmitting ? "Kaydediliyor..." : "İşlemi Kaydet"}
+            {isSubmitting
+              ? "Kaydediliyor..."
+              : isEditing
+              ? "İşlemi Güncelle"
+              : "İşlemi Kaydet"}
           </Button>
         </form>
       </div>

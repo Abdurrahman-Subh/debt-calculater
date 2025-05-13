@@ -2,6 +2,11 @@ import { create } from "zustand";
 import { Friend, Transaction, DebtSummary } from "../types";
 import { persist } from "zustand/middleware";
 import { auth } from "@/app/lib/firebase";
+import {
+  isTransactionDue,
+  generateRecurringInstance,
+  calculateNextDate,
+} from "../utils/recurringTransactions";
 
 interface DebtState {
   friends: Friend[];
@@ -14,6 +19,7 @@ interface DebtState {
   fetchFriends: () => Promise<void>;
   fetchTransactions: () => Promise<void>;
   addFriend: (friend: Omit<Friend, "id" | "userId">) => Promise<Friend>;
+  updateFriend: (id: string, name: string) => Promise<Friend>;
   deleteFriend: (id: string) => Promise<void>;
   addTransaction: (
     transaction: Omit<Transaction, "id" | "userId">
@@ -22,6 +28,12 @@ interface DebtState {
   getDebtSummaries: () => DebtSummary[];
   getTransactionsForFriend: (friendId: string) => Transaction[];
   clearError: () => void;
+  processRecurringTransactions: () => Promise<void>;
+  updateTransaction: (
+    id: string,
+    updates: Partial<Omit<Transaction, "id" | "userId">>
+  ) => Promise<Transaction>;
+  getRecurringTransactions: () => Transaction[];
 }
 
 // Calculate the debt summaries based on friends and transactions
@@ -255,6 +267,44 @@ export const useDebtStore = create<DebtState>()(
         }
       },
 
+      updateFriend: async (id, name) => {
+        const userId = getCurrentUserId();
+        if (!userId) {
+          throw new Error("You must be logged in to update a friend");
+        }
+
+        set({ isLoading: true, error: null, indexUrl: null });
+        try {
+          const response = await fetch(`/api/friends/${id}`, {
+            method: "PATCH",
+            headers: addAuthHeader(),
+            body: JSON.stringify({ name }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to update friend");
+          }
+
+          const updatedFriend = await response.json();
+          set((state) => ({
+            friends: state.friends.map((f) =>
+              f.id === id ? updatedFriend : f
+            ),
+            isLoading: false,
+          }));
+
+          return updatedFriend;
+        } catch (error) {
+          console.error("Error updating friend:", error);
+          set({
+            error: error instanceof Error ? error.message : "An error occurred",
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+
       deleteFriend: async (id) => {
         const userId = getCurrentUserId();
         if (!userId) {
@@ -377,6 +427,87 @@ export const useDebtStore = create<DebtState>()(
 
       getTransactionsForFriend: (friendId: string) => {
         return get().transactions.filter((t) => t.friendId === friendId);
+      },
+
+      processRecurringTransactions: async () => {
+        const recurringTransactions = get().getRecurringTransactions();
+
+        for (const transaction of recurringTransactions) {
+          // Check if this recurring transaction is due
+          if (isTransactionDue(transaction)) {
+            try {
+              // Generate a new transaction instance
+              const today = new Date();
+              const newTransactionData = generateRecurringInstance(
+                transaction,
+                today
+              );
+
+              // Add the new transaction instance
+              await get().addTransaction(newTransactionData);
+
+              // Update the last processed date on the recurring transaction template
+              await get().updateTransaction(transaction.id, {
+                recurring: {
+                  ...transaction.recurring!,
+                  lastProcessedDate: today.toISOString(),
+                },
+              });
+
+              console.log(`Processed recurring transaction: ${transaction.id}`);
+            } catch (error) {
+              console.error(
+                `Failed to process recurring transaction ${transaction.id}:`,
+                error
+              );
+            }
+          }
+        }
+      },
+
+      updateTransaction: async (id, updates) => {
+        const userId = getCurrentUserId();
+        if (!userId) {
+          throw new Error("You must be logged in to update a transaction");
+        }
+
+        set({ isLoading: true, error: null, indexUrl: null });
+        try {
+          const response = await fetch(`/api/transactions/${id}`, {
+            method: "PATCH",
+            headers: addAuthHeader(),
+            body: JSON.stringify(updates),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to update transaction");
+          }
+
+          const updatedTransaction = await response.json();
+          set((state) => ({
+            transactions: state.transactions.map((t) =>
+              t.id === id ? updatedTransaction : t
+            ),
+            isLoading: false,
+          }));
+
+          return updatedTransaction;
+        } catch (error) {
+          console.error("Error updating transaction:", error);
+          set({
+            error: error instanceof Error ? error.message : "An error occurred",
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+
+      getRecurringTransactions: () => {
+        return get().transactions.filter(
+          (t) =>
+            t.recurring && t.recurring.isRecurring && !t.parentTransactionId
+        );
       },
     }),
     {

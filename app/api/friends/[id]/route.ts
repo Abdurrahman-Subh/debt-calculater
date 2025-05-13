@@ -8,6 +8,7 @@ import {
   query,
   where,
   getDocs,
+  updateDoc,
 } from "firebase/firestore";
 
 // Helper function to extract user ID from authorization header
@@ -124,6 +125,78 @@ export async function GET(
     console.error("Error fetching friend:", error);
     return NextResponse.json(
       { error: "Failed to fetch friend" },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH to update a friend
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const id = params.id;
+
+  // Get user ID from authorization header
+  const userId = getUserIdFromHeader(request);
+
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Unauthorized - you must be logged in" },
+      { status: 401 }
+    );
+  }
+
+  try {
+    // First, verify that the friend belongs to the current user
+    const friendRef = doc(db, "friends", id);
+    const friendDoc = await getDoc(friendRef);
+
+    if (!friendDoc.exists()) {
+      return NextResponse.json({ error: "Friend not found" }, { status: 404 });
+    }
+
+    const friendData = friendDoc.data();
+
+    // If the friend does not belong to the current user, deny access
+    if (friendData.userId !== userId) {
+      return NextResponse.json(
+        {
+          error:
+            "Unauthorized - you do not have permission to update this friend",
+        },
+        { status: 403 }
+      );
+    }
+
+    // Get update data from request
+    const updateData = await request.json();
+
+    // Validate the update data
+    if (!updateData.name || updateData.name.trim() === "") {
+      return NextResponse.json(
+        { error: "Friend name cannot be empty" },
+        { status: 400 }
+      );
+    }
+
+    // Update the friend
+    await updateDoc(friendRef, {
+      name: updateData.name.trim(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    // Get the updated friend
+    const updatedFriendDoc = await getDoc(friendRef);
+
+    return NextResponse.json({
+      id: updatedFriendDoc.id,
+      ...updatedFriendDoc.data(),
+    });
+  } catch (error) {
+    console.error("Error updating friend:", error);
+    return NextResponse.json(
+      { error: "Failed to update friend" },
       { status: 500 }
     );
   }

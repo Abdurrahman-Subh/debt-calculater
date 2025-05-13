@@ -17,12 +17,14 @@ import {
   User,
   Trash2,
   AlertTriangle,
+  Edit2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Transaction, Friend } from "@/app/types";
 import { useDebtStore } from "@/app/store/store";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import ShareLink from "@/app/components/ShareLink";
+import TransactionForm from "@/app/components/TransactionForm";
 import {
   Dialog,
   DialogContent,
@@ -43,12 +45,14 @@ export default function TransactionDetailPage({
   const id = params.id;
 
   const router = useRouter();
-  const { friends, transactions, deleteTransaction } = useDebtStore();
+  const { friends, transactions, deleteTransaction, updateTransaction } =
+    useDebtStore();
 
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [friend, setFriend] = useState<Friend | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // Fetch transaction data
   useEffect(() => {
@@ -129,6 +133,31 @@ export default function TransactionDetailPage({
     }
   }, [transaction, deleteTransaction, router]);
 
+  const handleUpdate = useCallback(
+    async (updatedTransaction: Omit<Transaction, "id" | "userId">) => {
+      if (!transaction) return {} as Transaction;
+
+      try {
+        const result = await updateTransaction(
+          transaction.id,
+          updatedTransaction
+        );
+        setIsEditDialogOpen(false);
+        toast.success("İşlem başarıyla güncellendi");
+
+        // Update the local state
+        setTransaction(result);
+
+        return result;
+      } catch (error) {
+        toast.error("İşlem güncellenirken bir hata oluştu");
+        console.error("Error updating transaction:", error);
+        throw error;
+      }
+    },
+    [transaction, updateTransaction]
+  );
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-48">
@@ -162,6 +191,16 @@ export default function TransactionDetailPage({
         </Button>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditDialogOpen(true)}
+            className="inline-flex items-center"
+          >
+            <Edit2 className="mr-1 h-4 w-4" />
+            Düzenle
+          </Button>
+
           <ShareLink
             type="transaction"
             id={transaction.id}
@@ -295,6 +334,31 @@ export default function TransactionDetailPage({
               Sil
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Transaction Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit2 className="h-5 w-5 text-primary" />
+              İşlemi Düzenle
+            </DialogTitle>
+            <DialogDescription>
+              İşlem bilgilerini güncelleyebilirsiniz.
+            </DialogDescription>
+          </DialogHeader>
+
+          {transaction && (
+            <TransactionForm
+              friends={friends}
+              onAddTransaction={handleUpdate}
+              initialFriendId={transaction.friendId}
+              initialTransaction={transaction}
+              isEditing={true}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </motion.div>

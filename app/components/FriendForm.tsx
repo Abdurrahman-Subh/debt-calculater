@@ -1,21 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { UserPlus } from "lucide-react";
+import { UserPlus, UserCog } from "lucide-react";
 import { Friend } from "../types";
 import { toast } from "sonner";
 
 interface FriendFormProps {
   onAddFriend: (friend: Omit<Friend, "id" | "userId">) => Promise<Friend>;
+  onUpdateFriend?: (id: string, name: string) => Promise<Friend>;
+  initialFriend?: Friend;
+  isEditing?: boolean;
 }
 
-const FriendForm = ({ onAddFriend }: FriendFormProps) => {
+const FriendForm = ({
+  onAddFriend,
+  onUpdateFriend,
+  initialFriend,
+  isEditing = false,
+}: FriendFormProps) => {
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (initialFriend) {
+      setName(initialFriend.name);
+    }
+  }, [initialFriend]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,11 +42,27 @@ const FriendForm = ({ onAddFriend }: FriendFormProps) => {
     setIsSubmitting(true);
 
     try {
-      await onAddFriend({ name: name.trim() });
-      // Reset is handled in parent component
+      if (isEditing && initialFriend && onUpdateFriend) {
+        await onUpdateFriend(initialFriend.id, name.trim());
+        toast.success("Arkadaş başarıyla güncellendi");
+      } else {
+        await onAddFriend({ name: name.trim() });
+        // Reset only when adding, not when editing
+        if (!isEditing) {
+          setName("");
+        }
+      }
     } catch (error) {
-      console.error("Failed to add friend:", error);
-      toast.error("Arkadaş eklenirken bir hata oluştu");
+      console.error(
+        isEditing ? "Failed to update friend:" : "Failed to add friend:",
+        error
+      );
+      toast.error(
+        isEditing
+          ? "Arkadaş güncellenirken bir hata oluştu"
+          : "Arkadaş eklenirken bir hata oluştu"
+      );
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -44,8 +74,14 @@ const FriendForm = ({ onAddFriend }: FriendFormProps) => {
       transition={{ duration: 0.2 }}
     >
       <div className="mb-4 flex items-center">
-        <UserPlus className="text-primary h-5 w-5 mr-2" />
-        <h2 className="text-lg font-medium">Yeni Arkadaş Ekle</h2>
+        {isEditing ? (
+          <UserCog className="text-primary h-5 w-5 mr-2" />
+        ) : (
+          <UserPlus className="text-primary h-5 w-5 mr-2" />
+        )}
+        <h2 className="text-lg font-medium">
+          {isEditing ? "Arkadaşı Düzenle" : "Yeni Arkadaş Ekle"}
+        </h2>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -68,7 +104,13 @@ const FriendForm = ({ onAddFriend }: FriendFormProps) => {
           className="w-full bg-primary hover:bg-primary-600"
           disabled={isSubmitting || !name.trim()}
         >
-          {isSubmitting ? "Ekleniyor..." : "Arkadaş Ekle"}
+          {isSubmitting
+            ? isEditing
+              ? "Güncelleniyor..."
+              : "Ekleniyor..."
+            : isEditing
+            ? "Arkadaşı Güncelle"
+            : "Arkadaş Ekle"}
         </Button>
       </form>
     </motion.div>
