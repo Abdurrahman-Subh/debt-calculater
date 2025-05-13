@@ -10,23 +10,33 @@ import {
   TrendingDown,
   TrendingUp,
   Wallet,
+  PieChart,
+  Tag,
 } from "lucide-react";
 import { useState } from "react";
 import FriendStatTable from "../components/FriendStatTable";
 import MonthlyBalanceChart from "../components/MonthlyBalanceChart";
+import CategoryStatsChart from "../components/CategoryStatsChart";
+import TopCategoriesCards from "../components/TopCategoriesCards";
+import CategoryFilter from "../components/CategoryFilter";
 import StatCard from "../components/StatCard";
 import FirestoreIndexError from "../components/FirestoreIndexError";
 import { useDebtStore } from "../store/store";
 import { formatCurrency } from "../utils/currency";
+import { TransactionCategory } from "../types";
 import {
   getFriendStatisticsByMonth,
   getMonthlyStatistics,
   getTotalDebt,
+  getCategoryStatistics,
 } from "../utils/statistics";
 
 export default function Dashboard() {
   const { friends, transactions } = useDebtStore();
   const [currentMonth] = useState(new Date());
+  const [selectedCategory, setSelectedCategory] = useState<
+    TransactionCategory | "all"
+  >("all");
 
   // Calculate statistics
   const monthlyStats = getMonthlyStatistics(transactions);
@@ -34,6 +44,24 @@ export default function Dashboard() {
     transactions,
     friends,
     currentMonth
+  );
+
+  // Get all category statistics
+  const allCategoryStats = getCategoryStatistics(transactions);
+
+  // Filter transactions by selected category if needed
+  const filteredTransactions =
+    selectedCategory === "all"
+      ? transactions
+      : transactions.filter((t) => t.category === selectedCategory);
+
+  // Get filtered category statistics
+  const currentMonthCategoryStats = getCategoryStatistics(
+    selectedCategory === "all" ? transactions : filteredTransactions,
+    {
+      startDate: startOfMonth(currentMonth),
+      endDate: endOfMonth(currentMonth),
+    }
   );
 
   const debtSummaries = useDebtStore().getDebtSummaries();
@@ -70,6 +98,32 @@ export default function Dashboard() {
     ? calculateChange(currentMonthStat.totalLent, prevMonthStat.totalLent)
     : 0;
 
+  // Get category stats for display - if a category is selected, show only that one
+  const displayCategoryStats =
+    selectedCategory === "all"
+      ? allCategoryStats
+      : allCategoryStats.filter((c) => c.category === selectedCategory);
+
+  // Get section title based on selected category
+  const getCategoryTitle = () => {
+    if (selectedCategory === "all") return "Kategori İstatistikleri";
+
+    const categoryNames: Record<TransactionCategory, string> = {
+      food: "Yemek",
+      entertainment: "Eğlence",
+      rent: "Kira",
+      transportation: "Ulaşım",
+      shopping: "Alışveriş",
+      utilities: "Faturalar",
+      healthcare: "Sağlık",
+      education: "Eğitim",
+      travel: "Seyahat",
+      other: "Diğer",
+    };
+
+    return `${categoryNames[selectedCategory]} Kategorisi İstatistikleri`;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -89,7 +143,7 @@ export default function Dashboard() {
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Bu Ay Verilen Borç"
-          value={formatCurrency(currentMonthStat.totalBorrowed)}
+          value={formatCurrency(currentMonthStat.totalBorrowed, true)}
           icon={DollarSign}
           color="success"
           change={borrowedChange}
@@ -97,7 +151,7 @@ export default function Dashboard() {
 
         <StatCard
           title="Bu Ay Alınan Borç"
-          value={formatCurrency(currentMonthStat.totalLent)}
+          value={formatCurrency(currentMonthStat.totalLent, true)}
           icon={Wallet}
           color="danger"
           change={lentChange}
@@ -105,7 +159,7 @@ export default function Dashboard() {
 
         <StatCard
           title="Toplam Alacak"
-          value={formatCurrency(totalDebt.totalOwed)}
+          value={formatCurrency(totalDebt.totalOwed, true)}
           icon={TrendingUp}
           color="primary"
           description="Arkadaşlarınızın size toplam borcu"
@@ -113,7 +167,7 @@ export default function Dashboard() {
 
         <StatCard
           title="Toplam Borç"
-          value={formatCurrency(totalDebt.totalOwing)}
+          value={formatCurrency(totalDebt.totalOwing, true)}
           icon={TrendingDown}
           color="accent"
           description="Sizin arkadaşlarınıza toplam borcunuz"
@@ -122,6 +176,28 @@ export default function Dashboard() {
 
       <section>
         <MonthlyBalanceChart data={monthlyStats} />
+      </section>
+
+      {/* Category Statistics */}
+      <section>
+        <h2 className="text-xl font-bold mb-4 flex items-center">
+          <PieChart className="mr-2 h-5 w-5" />
+          {getCategoryTitle()}
+        </h2>
+
+        <CategoryFilter
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+        />
+
+        <div className="mb-6">
+          <TopCategoriesCards
+            data={displayCategoryStats}
+            limit={selectedCategory === "all" ? 4 : 1}
+          />
+        </div>
+
+        <CategoryStatsChart data={displayCategoryStats} />
       </section>
 
       <section>
@@ -134,4 +210,12 @@ export default function Dashboard() {
       <Toaster />
     </motion.div>
   );
+}
+
+function startOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function endOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
 }

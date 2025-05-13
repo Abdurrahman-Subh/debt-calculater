@@ -41,7 +41,7 @@ export default function FriendCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="border overflow-hidden h-full">
+      <Card className="border overflow-hidden h-full py-0">
         <CardContent className="p-4">
           <div className="flex justify-between items-start mb-3">
             <div className="flex items-center gap-2">

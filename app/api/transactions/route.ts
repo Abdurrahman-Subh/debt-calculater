@@ -146,7 +146,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { friendId, amount, type, description, date } = body;
+    const { friendId, amount, type, description, date, category, recurring } =
+      body;
 
     if (!friendId || !amount || !type || !date) {
       return NextResponse.json(
@@ -186,27 +187,33 @@ export async function POST(request: Request) {
       */
     }
 
-    const transactionsCollection = collection(db, "transactions");
-    const docRef = await addDoc(transactionsCollection, {
+    const transactionData: Record<string, any> = {
       friendId,
       amount: Number(amount),
       type,
       description: description || "",
       date,
-      userId: effectiveUserId, // Associate the transaction with the current user
+      userId: effectiveUserId,
       createdAt: new Date().toISOString(),
-    });
+    };
 
+    // Add optional fields if they exist
+    if (category) {
+      transactionData.category = category;
+    }
+
+    if (recurring) {
+      transactionData.recurring = recurring;
+    }
+
+    const transactionsCollection = collection(db, "transactions");
+    const docRef = await addDoc(transactionsCollection, transactionData);
+
+    // Return the complete transaction data including the new ID
     return NextResponse.json(
       {
         id: docRef.id,
-        friendId,
-        amount: Number(amount),
-        type,
-        description: description || "",
-        date,
-        userId: effectiveUserId, // Include userId in the response
-        createdAt: new Date().toISOString(),
+        ...transactionData,
       },
       { status: 201 }
     );

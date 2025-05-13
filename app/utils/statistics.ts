@@ -7,7 +7,12 @@ import {
   subMonths,
 } from "date-fns";
 import { tr } from "date-fns/locale";
-import { Transaction, Friend, DebtSummary } from "../types";
+import {
+  Transaction,
+  Friend,
+  DebtSummary,
+  TransactionCategory,
+} from "../types";
 
 export interface MonthlyStats {
   month: string;
@@ -24,6 +29,15 @@ export interface FriendMonthlyStats {
   totalLent: number;
   totalPayments: number;
   netBalance: number;
+}
+
+export interface CategoryStats {
+  category: TransactionCategory;
+  totalAmount: number;
+  borrowedAmount: number;
+  lentAmount: number;
+  count: number;
+  percentage: number;
 }
 
 export function getMonthlyStatistics(
@@ -144,4 +158,118 @@ export function getTotalDebt(summaries: DebtSummary[]): {
     totalOwing,
     netBalance: totalOwed - totalOwing,
   };
+}
+
+export function getCategoryStatistics(
+  transactions: Transaction[],
+  filter?: {
+    startDate?: Date;
+    endDate?: Date;
+    transactionType?: "borrowed" | "lent" | "payment";
+  }
+): CategoryStats[] {
+  // Filter transactions if filter parameters are provided
+  let filteredTransactions = [...transactions];
+
+  if (filter) {
+    if (filter.startDate && filter.endDate) {
+      filteredTransactions = filteredTransactions.filter((t) => {
+        const transactionDate = new Date(t.date);
+        return isWithinInterval(transactionDate, {
+          start: filter.startDate!,
+          end: filter.endDate!,
+        });
+      });
+    }
+
+    if (filter.transactionType) {
+      filteredTransactions = filteredTransactions.filter(
+        (t) => t.type === filter.transactionType
+      );
+    }
+  }
+
+  // Group transactions by category
+  const categoryMap = new Map<
+    TransactionCategory,
+    {
+      totalAmount: number;
+      borrowedAmount: number;
+      lentAmount: number;
+      count: number;
+    }
+  >();
+
+  // Initialize with all categories to ensure we have entries for all categories
+  const allCategories: TransactionCategory[] = [
+    "food",
+    "entertainment",
+    "rent",
+    "transportation",
+    "shopping",
+    "utilities",
+    "healthcare",
+    "education",
+    "travel",
+    "other",
+  ];
+
+  allCategories.forEach((category) => {
+    categoryMap.set(category, {
+      totalAmount: 0,
+      borrowedAmount: 0,
+      lentAmount: 0,
+      count: 0,
+    });
+  });
+
+  // Process each transaction
+  filteredTransactions.forEach((transaction) => {
+    const category = transaction.category || "other";
+    const current = categoryMap.get(category)!;
+
+    // Update totals based on transaction type
+    if (transaction.type === "borrowed") {
+      current.borrowedAmount += transaction.amount;
+      current.totalAmount += transaction.amount;
+    } else if (transaction.type === "lent") {
+      current.lentAmount += transaction.amount;
+      current.totalAmount -= transaction.amount;
+    }
+
+    current.count += 1;
+    categoryMap.set(category, current);
+  });
+
+  // Calculate total transactions for determining percentages
+  const totalTransactions = Array.from(categoryMap.values()).reduce(
+    (sum, { count }) => sum + count,
+    0
+  );
+
+  // Calculate total absolute amount for determining value percentages
+  const totalAbsoluteAmount = Array.from(categoryMap.values()).reduce(
+    (sum, { totalAmount }) => sum + Math.abs(totalAmount),
+    0
+  );
+
+  // Convert to array and calculate percentages
+  const result: CategoryStats[] = Array.from(categoryMap.entries()).map(
+    ([category, { totalAmount, borrowedAmount, lentAmount, count }]) => ({
+      category,
+      totalAmount,
+      borrowedAmount,
+      lentAmount,
+      count,
+      percentage:
+        totalAbsoluteAmount > 0
+          ? (Math.abs(totalAmount) / totalAbsoluteAmount) * 100
+          : 0,
+    })
+  );
+
+  // Sort by absolute total amount (descending)
+  return result.sort(
+    (a, b) => Math.abs(b.totalAmount) - Math.abs(a.totalAmount)
+  );
 }

@@ -21,15 +21,6 @@ const StatCard = ({
   color = "primary",
   change,
 }: StatCardProps) => {
-  const colorClasses = {
-    primary: "bg-primary-50 text-primary-700",
-    secondary: "bg-secondary-50 text-secondary-700",
-    accent: "bg-accent-50 text-accent-700",
-    success: "bg-success-50 text-success-700",
-    danger: "bg-danger-50 text-danger-700",
-    warning: "bg-warning-50 text-warning-700",
-  };
-
   const iconColorClasses = {
     primary: "bg-primary-100 text-primary-700",
     secondary: "bg-secondary-100 text-secondary-700",
@@ -75,7 +66,7 @@ const StatCard = ({
                 {change}%
               </span>
               <span className="text-xs text-muted-foreground ml-1">
-                from last month
+                son ay ile karşılaştırma
               </span>
             </div>
           )}

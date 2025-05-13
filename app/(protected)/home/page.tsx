@@ -236,7 +236,7 @@ export default function Home() {
                     Toplam Alacak
                   </p>
                   <p className="text-lg font-bold text-success-600">
-                    {formatCurrency(totalDebt.totalOwed)}
+                    {formatCurrency(totalDebt.totalOwed, true)}
                   </p>
                 </div>
 
