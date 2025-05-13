@@ -4,6 +4,18 @@ export interface Friend {
   userId: string;
 }
 
+export type TransactionCategory =
+  | "food"
+  | "entertainment"
+  | "rent"
+  | "transportation"
+  | "shopping"
+  | "utilities"
+  | "healthcare"
+  | "education"
+  | "travel"
+  | "other";
+
 export interface Transaction {
   id: string;
   friendId: string;
@@ -12,6 +24,7 @@ export interface Transaction {
   date: string;
   type: "borrowed" | "lent" | "payment";
   userId: string;
+  category?: TransactionCategory;
 }
 
 export interface DebtSummary {

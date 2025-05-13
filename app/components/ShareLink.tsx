@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Share, Check, Copy, Link } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import QRCodeDisplay from "./QRCodeDisplay";
 
 interface ShareLinkProps {
   type: "friend" | "transaction";
@@ -73,15 +74,29 @@ export default function ShareLink({ type, id, name }: ShareLinkProps) {
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-1"
-        onClick={handleShare}
-      >
-        <Share className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">Paylaş</span>
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-1"
+          onClick={handleShare}
+        >
+          <Share className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Paylaş</span>
+        </Button>
+
+        <QRCodeDisplay
+          title={
+            type === "friend" ? `${name} ile Borç Durumu` : `İşlem: ${name}`
+          }
+          description={
+            type === "friend"
+              ? "Bu QR kodu tarayarak borç durumunu görüntüleyin"
+              : "Bu QR kodu tarayarak işlem detaylarını görüntüleyin"
+          }
+          shareUrl={shareUrl}
+        />
+      </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-md">

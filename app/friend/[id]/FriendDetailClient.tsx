@@ -11,13 +11,16 @@ import {
   PiggyBank,
   User,
   AlertTriangle,
+  TagIcon,
+  FilterIcon,
+  XIcon,
 } from "lucide-react";
 import TransactionList from "../../components/TransactionList";
 import TransactionForm from "../../components/TransactionForm";
 import FirestoreIndexError from "../../components/FirestoreIndexError";
 import ShareLink from "../../components/ShareLink";
 import { useDebtStore } from "../../store/store";
-import { DebtSummary, Transaction } from "../../types";
+import { DebtSummary, Transaction, TransactionCategory } from "../../types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "sonner";
@@ -29,6 +32,51 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Category configuration with colors and icons - matching the same one in TransactionForm
+const categoryConfig = {
+  food: {
+    label: "Yemek",
+    color: "bg-amber-100 text-amber-700 border-amber-200",
+  },
+  entertainment: {
+    label: "Eğlence",
+    color: "bg-purple-100 text-purple-700 border-purple-200",
+  },
+  rent: { label: "Kira", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  transportation: {
+    label: "Ulaşım",
+    color: "bg-green-100 text-green-700 border-green-200",
+  },
+  shopping: {
+    label: "Alışveriş",
+    color: "bg-pink-100 text-pink-700 border-pink-200",
+  },
+  utilities: {
+    label: "Faturalar",
+    color: "bg-indigo-100 text-indigo-700 border-indigo-200",
+  },
+  healthcare: {
+    label: "Sağlık",
+    color: "bg-red-100 text-red-700 border-red-200",
+  },
+  education: {
+    label: "Eğitim",
+    color: "bg-cyan-100 text-cyan-700 border-cyan-200",
+  },
+  travel: {
+    label: "Seyahat",
+    color: "bg-teal-100 text-teal-700 border-teal-200",
+  },
+  other: { label: "Diğer", color: "bg-gray-100 text-gray-700 border-gray-200" },
+};
 
 interface FriendDetailClientProps {
   friendId: string;
@@ -49,7 +97,13 @@ export default function FriendDetailClient({
 
   const [friendSummary, setFriendSummary] = useState<DebtSummary | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<
+    Transaction[]
+  >([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<
+    TransactionCategory | "all"
+  >("all");
 
   // Effect to update the friend summary and transactions when the store data changes
   useEffect(() => {
@@ -61,8 +115,21 @@ export default function FriendDetailClient({
     }
 
     setFriendSummary(summary);
-    setTransactions(getTransactionsForFriend(friendId));
+    const allTransactions = getTransactionsForFriend(friendId);
+    setTransactions(allTransactions);
+    setFilteredTransactions(allTransactions);
   }, [friendId, friends, getDebtSummaries, getTransactionsForFriend, router]);
+
+  // Apply category filtering when the filter changes
+  useEffect(() => {
+    if (categoryFilter === "all") {
+      setFilteredTransactions(transactions);
+    } else {
+      setFilteredTransactions(
+        transactions.filter((t) => t.category === categoryFilter)
+      );
+    }
+  }, [categoryFilter, transactions]);
 
   if (!friendSummary) {
     return null; // Will redirect in the useEffect
@@ -174,9 +241,59 @@ export default function FriendDetailClient({
         initialFriendId={friendSummary.friendId}
       />
 
+      {/* Category filter */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center">
+          <FilterIcon className="h-4 w-4 mr-2 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">
+            Kategori Filtresi:
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {categoryFilter !== "all" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 p-0 px-2"
+              onClick={() => setCategoryFilter("all")}
+            >
+              <XIcon className="h-4 w-4 mr-1" />
+              Temizle
+            </Button>
+          )}
+          <Select
+            value={categoryFilter}
+            onValueChange={(value) =>
+              setCategoryFilter(value as TransactionCategory | "all")
+            }
+          >
+            <SelectTrigger className="w-[180px] h-9">
+              <SelectValue placeholder="Tüm Kategoriler" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tüm Kategoriler</SelectItem>
+              {Object.entries(categoryConfig).map(([key, { label }]) => (
+                <SelectItem key={key} value={key}>
+                  <div className="flex items-center">
+                    <span
+                      className={`inline-block w-3 h-3 rounded-full ${
+                        categoryConfig[key as TransactionCategory].color.split(
+                          " "
+                        )[0]
+                      }`}
+                    />
+                    <span className="ml-2">{label}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className="mt-2">
         <TransactionList
-          transactions={transactions}
+          transactions={filteredTransactions}
           friends={friends}
           onDeleteTransaction={deleteTransaction}
         />

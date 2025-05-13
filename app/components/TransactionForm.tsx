@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Friend, Transaction } from "../types";
+import { Friend, Transaction, TransactionCategory } from "../types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,7 @@ import {
   DollarSign,
   User,
   PenLine,
+  TagIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,44 @@ interface TransactionFormProps {
   initialFriendId?: string;
 }
 
+// Category configuration with colors and icons
+const categoryConfig = {
+  food: {
+    label: "Yemek",
+    color: "bg-amber-100 text-amber-700 border-amber-200",
+  },
+  entertainment: {
+    label: "Eğlence",
+    color: "bg-purple-100 text-purple-700 border-purple-200",
+  },
+  rent: { label: "Kira", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  transportation: {
+    label: "Ulaşım",
+    color: "bg-green-100 text-green-700 border-green-200",
+  },
+  shopping: {
+    label: "Alışveriş",
+    color: "bg-pink-100 text-pink-700 border-pink-200",
+  },
+  utilities: {
+    label: "Faturalar",
+    color: "bg-indigo-100 text-indigo-700 border-indigo-200",
+  },
+  healthcare: {
+    label: "Sağlık",
+    color: "bg-red-100 text-red-700 border-red-200",
+  },
+  education: {
+    label: "Eğitim",
+    color: "bg-cyan-100 text-cyan-700 border-cyan-200",
+  },
+  travel: {
+    label: "Seyahat",
+    color: "bg-teal-100 text-teal-700 border-teal-200",
+  },
+  other: { label: "Diğer", color: "bg-gray-100 text-gray-700 border-gray-200" },
+};
+
 const TransactionForm = ({
   friends,
   onAddTransaction,
@@ -44,6 +83,7 @@ const TransactionForm = ({
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<Transaction["type"]>("borrowed");
+  const [category, setCategory] = useState<TransactionCategory>("other");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -59,6 +99,7 @@ const TransactionForm = ({
     setAmount("");
     setDescription("");
     setType("borrowed");
+    setCategory("other");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,6 +125,7 @@ const TransactionForm = ({
         description,
         date: new Date().toISOString(),
         type,
+        category,
       });
 
       // Reset form after successful submission
@@ -198,66 +240,117 @@ const TransactionForm = ({
                   <div className="relative z-10 flex items-center">
                     <div
                       className={cn(
-                        "flex items-center justify-center mr-2 rounded-full w-8 h-8",
+                        "rounded-full p-1.5",
                         type === option.value
-                          ? "bg-white/20 text-white"
-                          : cn(option.iconColor)
+                          ? "bg-white/20"
+                          : option.iconColor,
+                        "mr-2"
                       )}
                     >
                       {option.icon}
                     </div>
-                    <span
-                      className={cn(
-                        "font-medium",
-                        type === option.value ? "text-white" : "text-gray-700"
-                      )}
-                    >
-                      {option.label}
-                    </span>
+                    <span>{option.label}</span>
                   </div>
-
-                  {type === option.value && (
-                    <motion.div
-                      className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layoutId="activeIndicator"
-                    />
-                  )}
                 </motion.button>
               ))}
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label
+                htmlFor="friend"
+                className="text-sm font-medium flex items-center gap-1 text-gray-600"
+              >
+                <User className="h-3.5 w-3.5 text-primary" />
+                Arkadaş
+              </Label>
+              {friends.length > 0 ? (
+                <Select
+                  value={friendId}
+                  onValueChange={setFriendId}
+                  disabled={isSubmitting || !!initialFriendId}
+                >
+                  <SelectTrigger
+                    id="friend"
+                    className="w-full border-gray-200 focus:ring-primary"
+                  >
+                    <SelectValue placeholder="Arkadaş seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {friends.map((friend) => (
+                        <SelectItem key={friend.id} value={friend.id}>
+                          {friend.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="text-sm text-muted-foreground border rounded-md p-2 bg-muted">
+                  Önce arkadaş eklemeniz gerekiyor
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="amount"
+                className="text-sm font-medium flex items-center gap-1 text-gray-600"
+              >
+                <DollarSign className="h-3.5 w-3.5 text-primary" />
+                Miktar (TL)
+              </Label>
+              <Input
+                id="amount"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="border-gray-200 focus:ring-primary"
+                required
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <Label
-              htmlFor="friend"
+              htmlFor="category"
               className="text-sm font-medium flex items-center gap-1 text-gray-600"
             >
-              <User className="h-3.5 w-3.5 text-primary" />
-              Arkadaş
+              <TagIcon className="h-3.5 w-3.5 text-primary" />
+              Kategori
             </Label>
             <Select
-              value={friendId}
-              onValueChange={setFriendId}
-              disabled={!!initialFriendId || isSubmitting}
+              value={category}
+              onValueChange={(value) =>
+                setCategory(value as TransactionCategory)
+              }
+              disabled={isSubmitting}
             >
-              <SelectTrigger className="w-full bg-white border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all rounded-lg h-11 shadow-sm">
-                <SelectValue placeholder="Arkadaş seçin" />
+              <SelectTrigger
+                id="category"
+                className="w-full border-gray-200 focus:ring-primary"
+              >
+                <SelectValue placeholder="Kategori seçin" />
               </SelectTrigger>
-              <SelectContent className="rounded-lg border-gray-200 shadow-lg">
+              <SelectContent>
                 <SelectGroup>
-                  {friends.map((friend) => (
-                    <SelectItem
-                      key={friend.id}
-                      value={friend.id}
-                      className="cursor-pointer focus:bg-primary/10 hover:bg-gray-50"
-                    >
+                  {Object.entries(categoryConfig).map(([key, { label }]) => (
+                    <SelectItem key={key} value={key}>
                       <div className="flex items-center">
-                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mr-2">
-                          <User className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        {friend.name}
+                        <span
+                          className={`inline-block w-3 h-3 rounded-full ${
+                            categoryConfig[
+                              key as TransactionCategory
+                            ].color.split(" ")[0]
+                          }`}
+                        />
+                        <span className="ml-2">{label}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -266,38 +359,7 @@ const TransactionForm = ({
             </Select>
           </div>
 
-          <div className="space-y-3">
-            <Label
-              htmlFor="amount"
-              className="text-sm font-medium flex items-center gap-1 text-gray-600"
-            >
-              <DollarSign className="h-3.5 w-3.5 text-primary" />
-              Miktar (TL)
-            </Label>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">
-                ₺
-              </div>
-              <Input
-                id="amount"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="pl-7 bg-white rounded-lg border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all h-11 shadow-sm"
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-                disabled={isSubmitting}
-              />
-              {amount && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                  {formatCurrency(amount, true)}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-3">
+          <div className="space-y-2">
             <Label
               htmlFor="description"
               className="text-sm font-medium flex items-center gap-1 text-gray-600"
@@ -307,60 +369,20 @@ const TransactionForm = ({
             </Label>
             <Textarea
               id="description"
+              placeholder="Açıklama ekleyin..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="İşlem açıklaması..."
-              className="resize-none h-24 bg-white rounded-lg border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+              className="min-h-24 text-sm border-gray-200 focus:ring-primary"
               disabled={isSubmitting}
             />
           </div>
 
           <Button
             type="submit"
-            className={cn(
-              "w-full transition-all duration-300 relative overflow-hidden group",
-              isSubmitting
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-primary to-primary-600 hover:shadow-lg hover:shadow-primary/20"
-            )}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !friendId || !amount}
+            className="w-full"
           >
-            <span className="relative z-10 flex items-center justify-center">
-              {isSubmitting ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Kaydediliyor...
-                </>
-              ) : (
-                <>
-                  <DollarSign className="mr-2 h-4 w-4 group-hover:rotate-12 transition-transform" />
-                  İşlemi Kaydet
-                </>
-              )}
-            </span>
-            <span
-              className="absolute bottom-0 left-0 w-full h-1 bg-white/20 transform scale-x-0 group-hover:scale-x-100 origin-left transition-transform"
-              style={{ transitionDuration: "350ms" }}
-            />
+            {isSubmitting ? "Kaydediliyor..." : "İşlemi Kaydet"}
           </Button>
         </form>
       </div>
