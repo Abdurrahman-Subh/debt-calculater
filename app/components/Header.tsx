@@ -1,21 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
-import {
-  CreditCard,
-  ListIcon,
-  CoinsIcon,
-  BarChart4,
-  TestTube2,
-  LogIn,
-  LogOut,
-  User,
-  Users,
-} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "../context/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,8 +10,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { motion } from "framer-motion";
+import {
+  BarChart4,
+  CoinsIcon,
+  CreditCard,
+  ListIcon,
+  LogIn,
+  LogOut,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
+import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
   const pathname = usePathname();
@@ -51,11 +49,6 @@ const Header = () => {
       href: "/dashboard",
       label: "İstatistikler",
       icon: <BarChart4 className="h-4 w-4 mr-2" />,
-    },
-    {
-      href: "/test",
-      label: "Test",
-      icon: <TestTube2 className="h-4 w-4 mr-2" />,
     },
   ];
 

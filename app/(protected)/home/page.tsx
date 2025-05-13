@@ -22,6 +22,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
+import ShareHelpCard from "@/app/components/ShareHelpCard";
 
 export default function Home() {
   const {
@@ -91,6 +92,9 @@ export default function Home() {
 
       {/* FirestoreIndexError */}
       <FirestoreIndexError />
+
+      {/* New Feature Announcement */}
+      <ShareHelpCard />
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

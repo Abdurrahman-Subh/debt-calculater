@@ -10,6 +10,7 @@ import {
   CalendarIcon,
   User,
   AlertTriangle,
+  ArrowUpRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Link from "next/link";
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -237,21 +239,31 @@ const TransactionList = ({
                             </div>
                           </div>
 
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteClick(transaction)}
-                            disabled={deletingIds.includes(transaction.id)}
-                            aria-label="İşlemi sil"
-                          >
-                            <Trash2
-                              className={`h-4 w-4 ${
-                                deletingIds.includes(transaction.id)
-                                  ? "animate-spin text-muted-foreground"
-                                  : "text-destructive"
-                              }`}
-                            />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              asChild
+                              className="h-8 w-8"
+                            >
+                              <Link
+                                href={`/transactions/${transaction.id}`}
+                                aria-label="İşlem detayı"
+                              >
+                                <ArrowUpRight className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 cursor-pointer"
+                              onClick={() => handleDeleteClick(transaction)}
+                              disabled={deletingIds.includes(transaction.id)}
+                              aria-label="İşlemi sil"
+                            >
+                              <Trash2 className={`h-4 w-4 $`} />
+                            </Button>
+                          </div>
                         </div>
                       </motion.div>
                     ))}

@@ -15,6 +15,7 @@ import {
 import TransactionList from "../../components/TransactionList";
 import TransactionForm from "../../components/TransactionForm";
 import FirestoreIndexError from "../../components/FirestoreIndexError";
+import ShareLink from "../../components/ShareLink";
 import { useDebtStore } from "../../store/store";
 import { DebtSummary, Transaction } from "../../types";
 import { Card, CardContent } from "@/components/ui/card";
@@ -108,6 +109,13 @@ export default function FriendDetailClient({
           <User className="mr-2 h-6 w-6" />
           {friendSummary.friendName}
         </h1>
+        <div className="ml-auto">
+          <ShareLink
+            type="friend"
+            id={friendSummary.friendId}
+            name={friendSummary.friendName}
+          />
+        </div>
       </div>
 
       <FirestoreIndexError />
