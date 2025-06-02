@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "./components/Header";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "./context/AuthContext";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -73,7 +74,7 @@ export default function RootLayout({
         className={`${inter.variable} ${poppins.variable} ${inter.className} antialiased bg-background min-h-screen`}
       >
         <div className="fixed inset-0 -z-10 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,#f8fafc)]" />
-
+        <Analytics />
         <AuthProvider>
           <Header />
 
