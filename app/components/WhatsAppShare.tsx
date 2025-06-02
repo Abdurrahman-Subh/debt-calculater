@@ -25,8 +25,8 @@ export default function WhatsAppShare({
 
   const title =
     type === "friend"
-      ? `BorçTakip - ${name} ile borç durumum`
-      : `BorçTakip - İşlem: ${name}`;
+      ? `Muhasebeji - ${name} ile borç durumum`
+      : `Muhasebeji - İşlem: ${name}`;
 
   return (
     <motion.div whileTap={{ scale: 0.95 }}>

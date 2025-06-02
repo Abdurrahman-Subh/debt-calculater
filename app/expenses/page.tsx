@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  DollarSign,
+  Banknote,
   Plus,
   Calendar,
   BarChart3,
@@ -128,8 +128,8 @@ export default function ExpensesPage() {
       className="space-y-8 p-4"
     >
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold flex items-center text-foreground">
-          <DollarSign className="mr-2 h-7 w-7" />
+        <h1 className="text-xl md:text-3xl font-bold flex items-center text-foreground">
+          <Banknote className="mr-2 h-7 w-7" />
           Kişisel Harcamalar
         </h1>
         <Button onClick={() => setIsDialogOpen(true)} className="gap-1">
@@ -239,7 +239,7 @@ export default function ExpensesPage() {
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-primary" />
+              <Banknote className="h-5 w-5 text-primary" />
               Yeni Harcama Ekle
             </DialogTitle>
           </DialogHeader>

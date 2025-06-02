@@ -54,7 +54,7 @@ export default function ShareLink({ type, id, name }: ShareLinkProps) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `BorçTakip - ${type === "friend" ? name : "İşlem Detayı"}`,
+          title: `Muhasebeji - ${type === "friend" ? name : "İşlem Detayı"}`,
           text: `${
             type === "friend" ? `${name} ile borç durumu` : `İşlem: ${name}`
           }`,

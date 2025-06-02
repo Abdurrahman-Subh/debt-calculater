@@ -1,5 +1,10 @@
 import { create } from "zustand";
-import { Friend, Transaction, DebtSummary } from "../types";
+import {
+  Friend,
+  Transaction,
+  DebtSummary,
+  ExtendedDebtSummary,
+} from "../types";
 import { persist } from "zustand/middleware";
 import { auth } from "@/app/lib/firebase";
 import {
@@ -7,6 +12,11 @@ import {
   generateRecurringInstance,
   calculateNextDate,
 } from "../utils/recurringTransactions";
+import {
+  createPartialPaymentTransaction,
+  createExtendedDebtSummary,
+  getOutstandingDebtsForFriend,
+} from "../utils/debtCalculations";
 
 interface DebtState {
   friends: Friend[];
@@ -34,6 +44,13 @@ interface DebtState {
     updates: Partial<Omit<Transaction, "id" | "userId">>
   ) => Promise<Transaction>;
   getRecurringTransactions: () => Transaction[];
+  // New methods for partial payments
+  makePartialPayment: (
+    originalDebtId: string,
+    amount: number,
+    description?: string
+  ) => Promise<Transaction>;
+  getExtendedDebtSummary: (friendId: string) => ExtendedDebtSummary | null;
 }
 
 // Calculate the debt summaries based on friends and transactions
@@ -61,15 +78,21 @@ const calculateDebtSummaries = (
       .filter((t) => t.type === "payment")
       .reduce((sum, t) => sum + t.amount, 0);
 
+    // Calculate total partial payments (negative for you)
+    const totalPartialPayments = friendTransactions
+      .filter((t) => t.type === "partial-payment")
+      .reduce((sum, t) => sum + t.amount, 0);
+
     // Calculate final balance (positive means they owe you, negative means you owe them)
-    const balance = totalBorrowed - totalLent - totalPayments;
+    const balance =
+      totalBorrowed - totalLent - totalPayments - totalPartialPayments;
 
     return {
       friendId: friend.id,
       friendName: friend.name,
       totalBorrowed,
       totalLent,
-      totalPayments,
+      totalPayments: totalPayments + totalPartialPayments, // Include partial payments in total payments
       balance,
       transactions: friendTransactions,
     };
@@ -508,6 +531,48 @@ export const useDebtStore = create<DebtState>()(
           (t) =>
             t.recurring && t.recurring.isRecurring && !t.parentTransactionId
         );
+      },
+
+      // New methods for partial payments
+      makePartialPayment: async (originalDebtId, amount, description) => {
+        const userId = getCurrentUserId();
+        if (!userId) {
+          throw new Error("You must be logged in to make a partial payment");
+        }
+
+        // Find the original debt transaction
+        const originalDebt = get().transactions.find(
+          (t) => t.id === originalDebtId
+        );
+        if (
+          !originalDebt ||
+          (originalDebt.type !== "borrowed" && originalDebt.type !== "lent")
+        ) {
+          throw new Error("Original debt transaction not found");
+        }
+
+        if (!originalDebt.friendId) {
+          throw new Error("Invalid debt transaction");
+        }
+
+        // Create partial payment transaction
+        const partialPaymentData = createPartialPaymentTransaction(
+          originalDebtId,
+          amount,
+          originalDebt.friendId,
+          description
+        );
+
+        // Add the partial payment transaction
+        return await get().addTransaction(partialPaymentData);
+      },
+
+      getExtendedDebtSummary: (friendId) => {
+        const friend = get().friends.find((f) => f.id === friendId);
+        if (!friend) return null;
+
+        const allTransactions = get().transactions;
+        return createExtendedDebtSummary(friend, allTransactions);
       },
     }),
     {

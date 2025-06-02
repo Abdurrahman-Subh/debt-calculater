@@ -3,16 +3,16 @@ import LoadingSpinner from "@/app/components/LoadingSpinner";
 import TransactionDetailClient from "./TransactionDetailClient";
 
 export const metadata = {
-  title: "İşlem Detayları | BorçTakip",
+  title: "İşlem Detayları | Muhasebeji",
 };
 
 // Server component that properly unwraps the params
-export default function TransactionDetailPage({
+export default async function TransactionDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const transactionId = params.id;
+  const { id: transactionId } = await params;
 
   return (
     <Suspense fallback={<LoadingSpinner />}>

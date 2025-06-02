@@ -78,9 +78,9 @@ export default function FriendCard({
             className={cn(
               "px-3 py-2 rounded-md mb-3 flex items-center gap-2",
               balance > 0
-                ? "bg-green-50 text-green-700"
+                ? "bg-emerald-50 text-emerald-700"
                 : balance < 0
-                ? "bg-red-50 text-red-700"
+                ? "bg-rose-50 text-rose-700"
                 : "bg-gray-50 text-gray-700"
             )}
           >

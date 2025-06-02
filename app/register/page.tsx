@@ -12,6 +12,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { CreditCard, Mail, User } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Register() {
   const { user, loading, signInWithGoogle, signUpWithEmail } = useAuth();
@@ -130,15 +131,18 @@ export default function Register() {
         <Card className="shadow-lg border-primary-100 py-0">
           <CardContent className="p-4">
             <div className="flex flex-col items-center text-center mb-6">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary-50">
-                <CreditCard className="w-6 h-6 text-primary" />
+              <div className="flex items-center">
+                <Image
+                  src="/muhasebeji6.png"
+                  alt="Muhasebeji"
+                  width={150}
+                  height={150}
+                  className="mr-3"
+                />
               </div>
-              <h1 className="text-2xl font-semibold text-primary mb-2">
+              <h1 className="text-2xl font-semibold text-primary">
                 Hesap Oluştur
               </h1>
-              <p className="text-gray-500 text-sm mb-2">
-                BorçTakip'e hemen üye olun
-              </p>
               <div className="w-16 h-1 bg-primary-100 rounded-full"></div>
             </div>
 

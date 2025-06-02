@@ -14,23 +14,23 @@ export const categoryConfig: Record<
   },
   entertainment: {
     label: "Eğlence",
-    color: "bg-purple-100 text-purple-700 border-purple-200",
+    color: "bg-violet-100 text-violet-700 border-violet-200",
   },
   rent: {
     label: "Kira",
-    color: "bg-blue-100 text-blue-700 border-blue-200",
+    color: "bg-slate-100 text-slate-700 border-slate-200",
   },
   transportation: {
     label: "Ulaşım",
-    color: "bg-green-100 text-green-700 border-green-200",
+    color: "bg-emerald-100 text-emerald-700 border-emerald-200",
   },
   shopping: {
     label: "Alışveriş",
-    color: "bg-pink-100 text-pink-700 border-pink-200",
+    color: "bg-rose-100 text-rose-700 border-rose-200",
   },
   utilities: {
     label: "Faturalar",
-    color: "bg-indigo-100 text-indigo-700 border-indigo-200",
+    color: "bg-sky-100 text-sky-700 border-sky-200",
   },
   healthcare: {
     label: "Sağlık",

@@ -7,7 +7,7 @@ import Link from "next/link";
 import {
   Check,
   CreditCard,
-  DollarSign,
+  Banknote,
   PiggyBank,
   Share,
   User,
@@ -23,7 +23,7 @@ export default function JoinPage() {
         className="text-center mb-6"
       >
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          BorçTakip'e Hoş Geldiniz
+          Muhasebeji'e Hoş Geldiniz
         </h1>
         <p className="text-muted-foreground mb-6">
           Bir arkadaşınız sizinle borç bilgisi paylaştı. Siz de kolayca borç
@@ -45,7 +45,7 @@ export default function JoinPage() {
       <Card className="mb-6">
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold mb-4">
-            BorçTakip ile Neler Yapabilirsiniz?
+            Muhasebeji ile Neler Yapabilirsiniz?
           </h2>
           <ul className="space-y-3">
             <motion.li
@@ -54,8 +54,8 @@ export default function JoinPage() {
               transition={{ delay: 0.1 }}
               className="flex items-start"
             >
-              <div className="bg-success-50 p-1.5 rounded-full mr-3 mt-0.5">
-                <DollarSign className="h-4 w-4 text-success-600" />
+              <div className="bg-emerald-50 p-1.5 rounded-full mr-3 mt-0.5">
+                <Banknote className="h-4 w-4 text-emerald-600" />
               </div>
               <div>
                 <span className="font-medium">Borç Verme</span>
@@ -71,8 +71,8 @@ export default function JoinPage() {
               transition={{ delay: 0.2 }}
               className="flex items-start"
             >
-              <div className="bg-destructive/10 p-1.5 rounded-full mr-3 mt-0.5">
-                <PiggyBank className="h-4 w-4 text-destructive" />
+              <div className="bg-rose-50 p-1.5 rounded-full mr-3 mt-0.5">
+                <PiggyBank className="h-4 w-4 text-rose-600" />
               </div>
               <div>
                 <span className="font-medium">Borç Alma</span>

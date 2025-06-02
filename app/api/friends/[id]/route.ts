@@ -26,9 +26,9 @@ function getUserIdFromHeader(request: Request) {
 // DELETE a friend by ID
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = params.id;
+  const { id } = await params;
 
   // Get user ID from authorization header
   const userId = getUserIdFromHeader(request);
@@ -98,10 +98,10 @@ export async function DELETE(
 // GET a single friend
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
@@ -133,9 +133,9 @@ export async function GET(
 // PATCH to update a friend
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = params.id;
+  const { id } = await params;
 
   // Get user ID from authorization header
   const userId = getUserIdFromHeader(request);

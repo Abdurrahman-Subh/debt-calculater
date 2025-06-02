@@ -24,7 +24,7 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   CreditCard,
-  DollarSign,
+  Banknote,
   User,
   PenLine,
   TagIcon,
@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "../utils/currency";
 import { getRecurrenceText } from "../utils/recurringTransactions";
+import { categoryConfig } from "../utils/categoryConfig";
 
 interface TransactionFormProps {
   friends: Friend[];
@@ -45,44 +46,6 @@ interface TransactionFormProps {
   initialTransaction?: Transaction;
   isEditing?: boolean;
 }
-
-// Category configuration with colors and icons
-const categoryConfig = {
-  food: {
-    label: "Yemek",
-    color: "bg-amber-100 text-amber-700 border-amber-200",
-  },
-  entertainment: {
-    label: "Eğlence",
-    color: "bg-purple-100 text-purple-700 border-purple-200",
-  },
-  rent: { label: "Kira", color: "bg-blue-100 text-blue-700 border-blue-200" },
-  transportation: {
-    label: "Ulaşım",
-    color: "bg-green-100 text-green-700 border-green-200",
-  },
-  shopping: {
-    label: "Alışveriş",
-    color: "bg-pink-100 text-pink-700 border-pink-200",
-  },
-  utilities: {
-    label: "Faturalar",
-    color: "bg-indigo-100 text-indigo-700 border-indigo-200",
-  },
-  healthcare: {
-    label: "Sağlık",
-    color: "bg-red-100 text-red-700 border-red-200",
-  },
-  education: {
-    label: "Eğitim",
-    color: "bg-cyan-100 text-cyan-700 border-cyan-200",
-  },
-  travel: {
-    label: "Seyahat",
-    color: "bg-teal-100 text-teal-700 border-teal-200",
-  },
-  other: { label: "Diğer", color: "bg-gray-100 text-gray-700 border-gray-200" },
-};
 
 const TransactionForm = ({
   friends,
@@ -268,21 +231,21 @@ const TransactionForm = ({
       value: "payment",
       label: "Ödeme",
       icon: <CreditCard className="h-4 w-4" />,
-      color: "from-blue-500 to-indigo-500",
-      activeColor: "from-blue-600 to-indigo-600",
-      hoverColor: "hover:shadow-md hover:shadow-blue-200",
-      bgColor: "bg-blue-50",
-      iconColor: "text-blue-600",
+      color: "from-slate-500 to-gray-500",
+      activeColor: "from-slate-600 to-gray-600",
+      hoverColor: "hover:shadow-md hover:shadow-slate-200",
+      bgColor: "bg-slate-50",
+      iconColor: "text-slate-600",
     },
     {
       value: "expense",
       label: "Harcama",
-      icon: <DollarSign className="h-4 w-4" />,
-      color: "from-purple-500 to-violet-500",
-      activeColor: "from-purple-600 to-violet-600",
-      hoverColor: "hover:shadow-md hover:shadow-purple-200",
-      bgColor: "bg-purple-50",
-      iconColor: "text-purple-600",
+      icon: <Banknote className="h-4 w-4" />,
+      color: "from-amber-500 to-orange-500",
+      activeColor: "from-amber-600 to-orange-600",
+      hoverColor: "hover:shadow-md hover:shadow-amber-200",
+      bgColor: "bg-amber-50",
+      iconColor: "text-amber-600",
     },
   ];
 
@@ -298,7 +261,7 @@ const TransactionForm = ({
 
       <div className="relative p-5 sm:p-6">
         <div className="mb-5 flex items-center border-b pb-4">
-          <DollarSign className="text-primary h-5 w-5 mr-2" />
+          <Banknote className="text-primary h-5 w-5 mr-2" />
           <h2 className="text-lg font-semibold text-gray-800">
             {isEditing ? "İşlem Düzenle" : "Yeni İşlem Ekle"}
           </h2>
@@ -315,7 +278,7 @@ const TransactionForm = ({
                 "grid",
                 isEditing
                   ? "grid-cols-2 gap-3"
-                  : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4"
+                  : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
               )}
             >
               {transactionTypes.map((option) => (
@@ -410,7 +373,7 @@ const TransactionForm = ({
                 htmlFor="amount"
                 className="text-sm font-medium flex items-center gap-1 text-gray-600"
               >
-                <DollarSign className="h-3.5 w-3.5 text-primary" />
+                <Banknote className="h-3.5 w-3.5 text-primary" />
                 Miktar (TL)
               </Label>
               <Input

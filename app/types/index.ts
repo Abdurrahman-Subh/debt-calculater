@@ -38,11 +38,13 @@ export interface Transaction {
   amount: number;
   description: string;
   date: string;
-  type: "borrowed" | "lent" | "payment" | "expense";
+  type: "borrowed" | "lent" | "payment" | "expense" | "partial-payment";
   userId: string;
   category?: TransactionCategory;
   recurring?: RecurringTransactionSettings;
   parentTransactionId?: string; // For generated recurring transactions, points to the original
+  originalDebtId?: string; // For partial payments, references the original debt transaction
+  remainingBalance?: number; // For debt transactions, tracks remaining balance after partial payments
 }
 
 export interface DebtSummary {
@@ -53,6 +55,24 @@ export interface DebtSummary {
   totalLent: number;
   totalPayments: number;
   transactions: Transaction[];
+}
+
+// New interface for tracking individual debts and their partial payments
+export interface DebtDetail {
+  id: string;
+  originalTransaction: Transaction;
+  originalAmount: number;
+  remainingBalance: number;
+  partialPayments: Transaction[];
+  createdDate: string;
+  lastPaymentDate?: string;
+  isFullyPaid: boolean;
+}
+
+// Extended debt summary with individual debt details
+export interface ExtendedDebtSummary extends DebtSummary {
+  outstandingDebts: DebtDetail[];
+  totalOutstandingAmount: number;
 }
 
 // Expense summary interface for personal expense tracking

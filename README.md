@@ -1,4 +1,4 @@
-# BorçTakip (Debt Tracker)
+# Muhasebeji (Debt Tracker)
 
 A simple debt tracking application that helps you manage debts between friends. Built with Next.js, React, TypeScript, and Firebase.
 

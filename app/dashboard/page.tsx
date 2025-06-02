@@ -6,7 +6,7 @@ import { tr } from "date-fns/locale";
 import { motion } from "framer-motion";
 import {
   BarChart4,
-  DollarSign,
+  Banknote,
   TrendingDown,
   TrendingUp,
   Wallet,
@@ -132,7 +132,7 @@ export default function Dashboard() {
       className="space-y-8 p-4"
     >
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold flex items-center text-foreground">
+        <h1 className="text-xl md:text-3xl font-bold flex items-center text-foreground">
           <BarChart4 className="mr-2 h-7 w-7" />
           Borç İstatistikleri
         </h1>
@@ -144,7 +144,7 @@ export default function Dashboard() {
         <StatCard
           title="Bu Ay Verilen Borç"
           value={formatCurrency(currentMonthStat.totalBorrowed, true)}
-          icon={DollarSign}
+          icon={Banknote}
           color="success"
           change={borrowedChange}
         />

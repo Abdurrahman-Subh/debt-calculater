@@ -146,8 +146,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { friendId, amount, type, description, date, category, recurring } =
-      body;
+    const {
+      friendId,
+      amount,
+      type,
+      description,
+      date,
+      category,
+      recurring,
+      originalDebtId,
+    } = body;
 
     if (!amount || !type || !date) {
       return NextResponse.json(
@@ -168,12 +176,26 @@ export async function POST(request: Request) {
       );
     }
 
+    // For partial payments, originalDebtId is required
+    if (type === "partial-payment" && !originalDebtId) {
+      return NextResponse.json(
+        {
+          error: "Original debt ID is required for partial payments",
+        },
+        { status: 400 }
+      );
+    }
+
     // Validate transaction type
-    if (!["borrowed", "lent", "payment", "expense"].includes(type)) {
+    if (
+      !["borrowed", "lent", "payment", "expense", "partial-payment"].includes(
+        type
+      )
+    ) {
       return NextResponse.json(
         {
           error:
-            "Transaction type must be one of: borrowed, lent, payment, expense",
+            "Transaction type must be one of: borrowed, lent, payment, expense, partial-payment",
         },
         { status: 400 }
       );
@@ -219,6 +241,10 @@ export async function POST(request: Request) {
 
     if (recurring) {
       transactionData.recurring = recurring;
+    }
+
+    if (originalDebtId) {
+      transactionData.originalDebtId = originalDebtId;
     }
 
     const transactionsCollection = collection(db, "transactions");

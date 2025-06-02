@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../context/AuthContext";
+import Image from "next/image";
 
 export default function SignIn() {
   const { user, loading, signInWithGoogle, signInWithEmail } = useAuth();
@@ -106,12 +107,15 @@ export default function SignIn() {
         <Card className="shadow-lg border-primary-100 py-0">
           <CardContent className="p-4">
             <div className="flex flex-col items-center text-center mb-6">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary-50">
-                <CreditCard className="w-6 h-6 text-primary" />
+              <div className="p-6 flex items-center">
+                <Image
+                  src="/muhasebeji6.png"
+                  alt="Muhasebeji"
+                  width={150}
+                  height={150}
+                  className="mr-3"
+                />
               </div>
-              <h1 className="text-2xl font-semibold text-primary mb-2">
-                BorçTakip
-              </h1>
               <p className="text-gray-500 text-sm mb-2">
                 Arkadaşlarınızla borç takibi yapmanın en kolay yolu
               </p>

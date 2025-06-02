@@ -3,7 +3,7 @@
 import { Transaction, Friend, TransactionCategory } from "../types";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  DollarSign,
+  Banknote,
   PiggyBank,
   Coins,
   Trash2,
@@ -16,6 +16,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "../utils/currency";
+import { categoryConfig } from "../utils/categoryConfig";
 import { useState } from "react";
 import {
   Dialog,
@@ -32,44 +33,6 @@ interface TransactionListProps {
   friends: Friend[];
   onDeleteTransaction: (id: string) => Promise<void>;
 }
-
-// Category configuration with colors and icons - matching the same one in TransactionForm
-const categoryConfig = {
-  food: {
-    label: "Yemek",
-    color: "bg-amber-100 text-amber-700 border-amber-200",
-  },
-  entertainment: {
-    label: "Eğlence",
-    color: "bg-purple-100 text-purple-700 border-purple-200",
-  },
-  rent: { label: "Kira", color: "bg-blue-100 text-blue-700 border-blue-200" },
-  transportation: {
-    label: "Ulaşım",
-    color: "bg-green-100 text-green-700 border-green-200",
-  },
-  shopping: {
-    label: "Alışveriş",
-    color: "bg-pink-100 text-pink-700 border-pink-200",
-  },
-  utilities: {
-    label: "Faturalar",
-    color: "bg-indigo-100 text-indigo-700 border-indigo-200",
-  },
-  healthcare: {
-    label: "Sağlık",
-    color: "bg-red-100 text-red-700 border-red-200",
-  },
-  education: {
-    label: "Eğitim",
-    color: "bg-cyan-100 text-cyan-700 border-cyan-200",
-  },
-  travel: {
-    label: "Seyahat",
-    color: "bg-teal-100 text-teal-700 border-teal-200",
-  },
-  other: { label: "Diğer", color: "bg-gray-100 text-gray-700 border-gray-200" },
-};
 
 const TransactionList = ({
   transactions,
@@ -99,11 +62,13 @@ const TransactionList = ({
   const getTransactionTypeLabel = (type: Transaction["type"]) => {
     switch (type) {
       case "borrowed":
-        return "Borç Verme";
+        return "Borç Verdiniz";
       case "lent":
-        return "Borç Alma";
+        return "Borç Aldınız";
       case "payment":
         return "Ödeme";
+      case "partial-payment":
+        return "Kısmi Ödeme";
       case "expense":
         return "Harcama";
       default:
@@ -114,7 +79,7 @@ const TransactionList = ({
   const getTransactionIcon = (type: Transaction["type"]) => {
     switch (type) {
       case "borrowed":
-        return <DollarSign className="h-4 w-4" />;
+        return <Banknote className="h-4 w-4" />;
       case "lent":
         return <PiggyBank className="h-4 w-4" />;
       case "payment":
@@ -129,13 +94,15 @@ const TransactionList = ({
   const getTransactionTypeClass = (type: Transaction["type"]) => {
     switch (type) {
       case "borrowed":
-        return "bg-success-100 text-success-800 border-success-200";
+        return "bg-emerald-100 text-emerald-800 border-emerald-200";
       case "lent":
-        return "bg-danger-100 text-danger-800 border-danger-200";
+        return "bg-rose-100 text-rose-800 border-rose-200";
       case "payment":
-        return "bg-primary-100 text-primary-800 border-primary-200";
+        return "bg-slate-100 text-slate-800 border-slate-200";
+      case "partial-payment":
+        return "bg-amber-100 text-amber-800 border-amber-200";
       case "expense":
-        return "bg-purple-100 text-purple-800 border-purple-200";
+        return "bg-amber-100 text-amber-800 border-amber-200";
       default:
         return "bg-muted text-muted-foreground";
     }
@@ -144,13 +111,15 @@ const TransactionList = ({
   const getTransactionBgClass = (type: Transaction["type"]) => {
     switch (type) {
       case "borrowed":
-        return "bg-gradient-to-r from-success-50 to-background border-l-4 border-success-400";
+        return "bg-gradient-to-r from-emerald-50 to-background border-l-4 border-emerald-400";
       case "lent":
-        return "bg-gradient-to-r from-danger-50 to-background border-l-4 border-danger-400";
+        return "bg-gradient-to-r from-rose-50 to-background border-l-4 border-rose-400";
       case "payment":
-        return "bg-gradient-to-r from-primary-50 to-background border-l-4 border-primary-400";
+        return "bg-gradient-to-r from-slate-50 to-background border-l-4 border-slate-400";
+      case "partial-payment":
+        return "bg-gradient-to-r from-amber-50 to-background border-l-4 border-amber-400";
       case "expense":
-        return "bg-gradient-to-r from-purple-50 to-background border-l-4 border-purple-400";
+        return "bg-gradient-to-r from-amber-50 to-background border-l-4 border-amber-400";
       default:
         return "bg-background";
     }
@@ -209,7 +178,7 @@ const TransactionList = ({
       <Card>
         <CardHeader>
           <CardTitle className="text-xl font-semibold flex items-center">
-            <Coins className="mr-2 h-5 w-5 text-primary" />
+            <Coins className="mr-2 h-5 w-5 text-emerald-600" />
             İşlem Geçmişi
           </CardTitle>
         </CardHeader>
@@ -287,18 +256,28 @@ const TransactionList = ({
 
                             <div className="text-lg font-bold">
                               {transaction.type === "borrowed" && (
-                                <span className="text-success-600">
+                                <span className="text-emerald-600">
                                   +{formatCurrency(transaction.amount, true)}
                                 </span>
                               )}
                               {transaction.type === "lent" && (
-                                <span className="text-danger-600">
+                                <span className="text-rose-600">
                                   -{formatCurrency(transaction.amount, true)}
                                 </span>
                               )}
                               {transaction.type === "payment" && (
-                                <span className="text-primary-600">
+                                <span className="text-slate-600">
                                   {formatCurrency(transaction.amount, true)}
+                                </span>
+                              )}
+                              {transaction.type === "partial-payment" && (
+                                <span className="text-amber-600">
+                                  -{formatCurrency(transaction.amount, true)}
+                                </span>
+                              )}
+                              {transaction.type === "expense" && (
+                                <span className="text-amber-600">
+                                  -{formatCurrency(transaction.amount, true)}
                                 </span>
                               )}
                             </div>

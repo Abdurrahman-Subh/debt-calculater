@@ -21,12 +21,14 @@ import TransactionForm from "../../components/TransactionForm";
 import FirestoreIndexError from "../../components/FirestoreIndexError";
 import FriendForm from "../../components/FriendForm";
 import ShareMenu from "../../components/ShareMenu";
+import PartialPaymentManager from "../../components/PartialPaymentManager";
 import { useDebtStore } from "../../store/store";
 import {
   DebtSummary,
   Transaction,
   TransactionCategory,
   Friend,
+  ExtendedDebtSummary,
 } from "../../types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -64,9 +66,13 @@ export default function FriendDetailClient({
     updateFriend,
     getTransactionsForFriend,
     getDebtSummaries,
+    makePartialPayment,
+    getExtendedDebtSummary,
   } = useDebtStore();
 
   const [friendSummary, setFriendSummary] = useState<DebtSummary | null>(null);
+  const [extendedSummary, setExtendedSummary] =
+    useState<ExtendedDebtSummary | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<
     Transaction[]
@@ -87,10 +93,22 @@ export default function FriendDetailClient({
     }
 
     setFriendSummary(summary);
+
+    // Get extended summary with debt details
+    const extended = getExtendedDebtSummary(friendId);
+    setExtendedSummary(extended);
+
     const allTransactions = getTransactionsForFriend(friendId);
     setTransactions(allTransactions);
     setFilteredTransactions(allTransactions);
-  }, [friendId, friends, getDebtSummaries, getTransactionsForFriend, router]);
+  }, [
+    friendId,
+    friends,
+    getDebtSummaries,
+    getTransactionsForFriend,
+    getExtendedDebtSummary,
+    router,
+  ]);
 
   // Apply category filtering when the filter changes
   useEffect(() => {
@@ -131,12 +149,21 @@ export default function FriendDetailClient({
     return newTransaction;
   };
 
+  // Handle partial payment
+  const handlePartialPayment = async (
+    debtId: string,
+    amount: number,
+    description?: string
+  ) => {
+    await makePartialPayment(debtId, amount, description);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col gap-6 p-4 max-w-4xl mx-auto"
+      className="flex flex-col gap-6 max-w-4xl mx-auto"
     >
       <div className="flex items-center gap-2">
         <Button variant="outline" size="icon" asChild>
@@ -144,7 +171,7 @@ export default function FriendDetailClient({
             <ChevronLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <h1 className="text-3xl font-bold flex items-center text-foreground">
+        <h1 className="text-xl md:text-3xl font-bold flex items-center text-foreground">
           <User className="mr-2 h-6 w-6" />
           {friendSummary.friendName}
         </h1>
@@ -178,8 +205,8 @@ export default function FriendDetailClient({
               <div className="flex items-center space-x-2">
                 {friendSummary.balance > 0 ? (
                   <>
-                    <BanknoteIcon className="h-5 w-5 text-green-600" />
-                    <p className="text-green-600 font-medium text-lg">
+                    <BanknoteIcon className="h-5 w-5 text-emerald-600" />
+                    <p className="text-emerald-600 font-medium text-lg">
                       {friendSummary.friendName} size{" "}
                       <span className="font-bold">
                         {friendSummary.balance} TL
@@ -189,8 +216,8 @@ export default function FriendDetailClient({
                   </>
                 ) : friendSummary.balance < 0 ? (
                   <>
-                    <PiggyBank className="h-5 w-5 text-red-500" />
-                    <p className="text-red-600 font-medium text-lg">
+                    <PiggyBank className="h-5 w-5 text-rose-500" />
+                    <p className="text-rose-600 font-medium text-lg">
                       Siz {friendSummary.friendName}'a{" "}
                       <span className="font-bold">
                         {Math.abs(friendSummary.balance)} TL
@@ -221,6 +248,15 @@ export default function FriendDetailClient({
         onAddTransaction={handleAddTransaction}
         initialFriendId={friendSummary.friendId}
       />
+
+      {/* Partial Payment Manager */}
+      {extendedSummary && extendedSummary.outstandingDebts.length > 0 && (
+        <PartialPaymentManager
+          outstandingDebts={extendedSummary.outstandingDebts}
+          friendName={friendSummary.friendName}
+          onMakePartialPayment={handlePartialPayment}
+        />
+      )}
 
       {/* Category filter */}
       <div className="flex items-center justify-between mb-2">

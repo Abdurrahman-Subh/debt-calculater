@@ -45,8 +45,8 @@ export default function ShareMenu({ type, id, name }: ShareMenuProps) {
 
   const title =
     type === "friend"
-      ? `BorçTakip - ${name} ile borç durumum`
-      : `BorçTakip - İşlem: ${name}`;
+      ? `Muhasebeji - ${name} ile borç durumum`
+      : `Muhasebeji - İşlem: ${name}`;
 
   const handleCopy = async () => {
     try {
@@ -133,7 +133,7 @@ export default function ShareMenu({ type, id, name }: ShareMenuProps) {
               >
                 <FacebookShareButton
                   url={shareUrl}
-                  hashtag="#BorçTakip"
+                  hashtag="#Muhasebeji"
                   className="w-full"
                 >
                   <div className="flex flex-col items-center">

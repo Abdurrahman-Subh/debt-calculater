@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "BorçTakip - Borç Hesaplama ve Takip",
+  title: "Muhasebeji - Borç Hesaplama ve Takip",
   description: "Arkadaşlarınızla borç alışverişini kolayca takip edin",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
@@ -35,10 +35,10 @@ export default function RootLayout({
             {children}
           </main>
 
-          <footer className="py-6 border-t border-border mt-10">
+          <footer className="py-6 border-t border-border mt-2">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-muted-foreground">
               <p>
-                &copy; {new Date().getFullYear()} BorçTakip. Tüm hakları
+                &copy; {new Date().getFullYear()} Muhasebeji. Tüm hakları
                 saklıdır.
               </p>
             </div>

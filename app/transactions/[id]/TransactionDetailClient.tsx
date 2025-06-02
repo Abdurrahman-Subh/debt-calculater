@@ -10,7 +10,7 @@ import { formatDistance } from "date-fns";
 import { tr } from "date-fns/locale";
 import {
   ArrowLeft,
-  DollarSign,
+  Banknote,
   PiggyBank,
   CreditCard,
   CalendarIcon,
@@ -108,11 +108,11 @@ export default function TransactionDetailClient({
   const getTransactionIcon = (type: Transaction["type"]) => {
     switch (type) {
       case "borrowed":
-        return <DollarSign className="h-5 w-5 text-success-600" />;
+        return <Banknote className="h-5 w-5 text-emerald-600" />;
       case "lent":
-        return <PiggyBank className="h-5 w-5 text-destructive" />;
+        return <PiggyBank className="h-5 w-5 text-rose-600" />;
       case "payment":
-        return <CreditCard className="h-5 w-5 text-primary" />;
+        return <CreditCard className="h-5 w-5 text-slate-600" />;
       default:
         return null;
     }

@@ -3,16 +3,16 @@ import { Suspense } from "react";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 
 export const metadata = {
-  title: "Arkadaş Detayları | BorçTakip",
+  title: "Arkadaş Detayları | Muhasebeji",
 };
 
 // Server component that properly unwraps the params
-export default function FriendDetailPage({
+export default async function FriendDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const friendId = params.id;
+  const { id: friendId } = await params;
 
   return (
     <Suspense fallback={<LoadingSpinner />}>

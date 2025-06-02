@@ -16,7 +16,7 @@ function getUserIdFromHeader(request: Request) {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const userId = getUserIdFromHeader(request);
 
@@ -27,7 +27,7 @@ export async function PATCH(
     );
   }
 
-  const transactionId = params.id;
+  const { id: transactionId } = await params;
 
   if (!transactionId) {
     return NextResponse.json(
@@ -99,7 +99,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const userId = getUserIdFromHeader(request);
 
@@ -110,7 +110,7 @@ export async function DELETE(
     );
   }
 
-  const transactionId = params.id;
+  const { id: transactionId } = await params;
 
   if (!transactionId) {
     return NextResponse.json(

@@ -179,7 +179,7 @@ const Header = () => {
           >
             <Image
               src="/muhasebeji6.png"
-              alt="BorçTakip"
+              alt="Muhasebeji"
               width={140}
               height={140}
               className="mr-3 rounded-full"
@@ -306,12 +306,12 @@ const Header = () => {
             >
               <Image
                 src="/muhasebeji6.png"
-                alt="BorçTakip"
+                alt="Muhasebeji"
                 width={32}
                 height={32}
                 className="mr-3"
               />
-              <span className="text-xl font-bold text-primary">BorçTakip</span>
+              <span className="text-xl font-bold text-primary">Muhasebeji</span>
             </motion.div>
 
             <div className="p-5 space-y-5 flex-1">

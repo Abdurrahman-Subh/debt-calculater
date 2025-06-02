@@ -22,12 +22,12 @@ const StatCard = ({
   change,
 }: StatCardProps) => {
   const iconColorClasses = {
-    primary: "bg-primary-100 text-primary-700",
+    primary: "bg-emerald-100 text-emerald-700",
     secondary: "bg-secondary-100 text-secondary-700",
     accent: "bg-accent-100 text-accent-700",
-    success: "bg-success-100 text-success-700",
-    danger: "bg-danger-100 text-danger-700",
-    warning: "bg-warning-100 text-warning-700",
+    success: "bg-emerald-100 text-emerald-700",
+    danger: "bg-rose-100 text-rose-700",
+    warning: "bg-amber-100 text-amber-700",
   };
 
   return (
@@ -59,7 +59,7 @@ const StatCard = ({
             <div className="flex items-center mt-2">
               <span
                 className={`text-xs font-medium ${
-                  change >= 0 ? "text-success-600" : "text-danger-600"
+                  change >= 0 ? "text-emerald-600" : "text-rose-600"
                 }`}
               >
                 {change >= 0 ? "+" : ""}
