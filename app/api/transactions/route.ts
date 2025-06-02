@@ -14,7 +14,6 @@ import {
 function getUserIdFromHeader(request: Request) {
   try {
     const authHeader = request.headers.get("authorization");
-    console.log("Auth header present:", !!authHeader);
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
       // Extract the token
@@ -25,7 +24,6 @@ function getUserIdFromHeader(request: Request) {
     }
 
     // If we're here, either no auth header or invalid format
-    console.log("No valid auth header found");
     return null;
   } catch (error) {
     console.error("Error extracting user ID from header:", error);
@@ -66,7 +64,6 @@ function handleIndexError(error: any): {
 
 // GET all transactions
 export async function GET(request: Request) {
-  console.log("Transaction API: GET request received");
   const { searchParams } = new URL(request.url);
   const friendId = searchParams.get("friendId");
 
@@ -76,7 +73,6 @@ export async function GET(request: Request) {
   // For debugging only - in production you would not use a fallback ID
   // This is for development to help identify auth issues
   const effectiveUserId = userId || "dev-fallback-id";
-  console.log("Using user ID:", effectiveUserId);
 
   if (!userId) {
     console.warn(
@@ -98,9 +94,6 @@ export async function GET(request: Request) {
     // Always filter by userId first
     if (friendId) {
       // Get transactions for a specific friend and the current user
-      console.log(
-        `Querying transactions for friend: ${friendId} and user: ${effectiveUserId}`
-      );
       queryRef = query(
         transactionsCollection,
         where("userId", "==", effectiveUserId),
@@ -109,7 +102,6 @@ export async function GET(request: Request) {
       );
     } else {
       // Get all transactions for the current user
-      console.log(`Querying all transactions for user: ${effectiveUserId}`);
       queryRef = query(
         transactionsCollection,
         where("userId", "==", effectiveUserId),
@@ -118,7 +110,6 @@ export async function GET(request: Request) {
     }
 
     const snapshot = await getDocs(queryRef);
-    console.log(`Found ${snapshot.docs.length} transactions`);
 
     const transactions = snapshot.docs.map((doc) => ({
       id: doc.id,

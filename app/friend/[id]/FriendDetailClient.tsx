@@ -163,7 +163,7 @@ export default function FriendDetailClient({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col gap-6 max-w-4xl mx-auto"
+      className="flex flex-col gap-6 container mx-auto py-4"
     >
       <div className="flex items-center gap-2">
         <Button variant="outline" size="icon" asChild>

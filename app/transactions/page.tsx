@@ -102,7 +102,7 @@ export default function Transactions() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col gap-6"
+      className="flex flex-col gap-6 container mx-auto"
     >
       <section className="flex justify-between items-center py-4">
         <h1 className="text-xl md:text-3xl font-bold flex items-center text-foreground">

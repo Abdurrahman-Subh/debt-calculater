@@ -129,7 +129,7 @@ export default function Dashboard() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="space-y-8 p-4"
+      className="space-y-8 p-4 container mx-auto"
     >
       <div className="flex justify-between items-center">
         <h1 className="text-xl md:text-3xl font-bold flex items-center text-foreground">

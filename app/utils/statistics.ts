@@ -168,6 +168,73 @@ export function getTotalDebt(summaries: DebtSummary[]): {
   };
 }
 
+export function getExpenseSummary(
+  transactions: Transaction[],
+  timeRange?: {
+    startDate: Date;
+    endDate: Date;
+  }
+): ExpenseSummary {
+  // Filter only expense transactions
+  let expenses = transactions.filter((t) => t.type === "expense");
+
+  // Apply time range filter if provided
+  if (timeRange) {
+    expenses = expenses.filter((t) => {
+      const transactionDate = new Date(t.date);
+      return isWithinInterval(transactionDate, {
+        start: timeRange.startDate,
+        end: timeRange.endDate,
+      });
+    });
+  }
+
+  // Calculate total expenses
+  const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
+
+  // Group by category
+  const categoryMap = new Map<TransactionCategory, number>();
+
+  // Initialize all categories with zero
+  const allCategories: TransactionCategory[] = [
+    "food",
+    "entertainment",
+    "rent",
+    "transportation",
+    "shopping",
+    "utilities",
+    "healthcare",
+    "education",
+    "travel",
+    "other",
+  ];
+  allCategories.forEach((category) => categoryMap.set(category, 0));
+
+  // Sum expenses by category
+  expenses.forEach((expense) => {
+    const category = expense.category || "other";
+    categoryMap.set(
+      category,
+      (categoryMap.get(category) || 0) + expense.amount
+    );
+  });
+
+  // Convert to array with percentages
+  const byCategory = Array.from(categoryMap.entries())
+    .map(([category, amount]) => ({
+      category,
+      amount,
+      percentage: totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0,
+    }))
+    .filter((item) => item.amount > 0) // Only include categories with expenses
+    .sort((a, b) => b.amount - a.amount); // Sort by amount descending
+
+  return {
+    totalExpenses,
+    byCategory,
+  };
+}
+
 export function getCategoryStatistics(
   transactions: Transaction[],
   filter?: {
@@ -247,113 +314,63 @@ export function getCategoryStatistics(
       current.totalAmount -= transaction.amount;
     } else if (transaction.type === "expense") {
       current.expenseAmount += transaction.amount;
-      current.totalAmount -= transaction.amount; // Count expenses as negative in total balance
+      // For expense statistics, use positive values for sorting
+      current.totalAmount += transaction.amount;
     }
 
     current.count += 1;
     categoryMap.set(category, current);
   });
 
-  // Calculate total transactions for determining percentages
-  const totalTransactions = Array.from(categoryMap.values()).reduce(
-    (sum, { count }) => sum + count,
-    0
-  );
-
-  // Calculate total absolute amount for determining value percentages
-  const totalAbsoluteAmount = Array.from(categoryMap.values()).reduce(
-    (sum, { totalAmount }) => sum + Math.abs(totalAmount),
-    0
-  );
+  // Calculate total amount for determining percentages
+  let totalForPercentage = 0;
+  if (filter?.transactionType === "expense") {
+    // For expenses, use the sum of all expense amounts
+    totalForPercentage = Array.from(categoryMap.values()).reduce(
+      (sum, { expenseAmount }) => sum + expenseAmount,
+      0
+    );
+  } else {
+    // For debt transactions, use absolute values
+    totalForPercentage = Array.from(categoryMap.values()).reduce(
+      (sum, { totalAmount }) => sum + Math.abs(totalAmount),
+      0
+    );
+  }
 
   // Convert to array and calculate percentages
   const result: CategoryStats[] = Array.from(categoryMap.entries()).map(
     ([
       category,
       { totalAmount, borrowedAmount, lentAmount, expenseAmount, count },
-    ]) => ({
-      category,
-      totalAmount,
-      borrowedAmount,
-      lentAmount,
-      expenseAmount,
-      count,
-      percentage:
-        totalAbsoluteAmount > 0
-          ? (Math.abs(totalAmount) / totalAbsoluteAmount) * 100
-          : 0,
-    })
+    ]) => {
+      let percentage = 0;
+      if (totalForPercentage > 0) {
+        if (filter?.transactionType === "expense") {
+          percentage = (expenseAmount / totalForPercentage) * 100;
+        } else {
+          percentage = (Math.abs(totalAmount) / totalForPercentage) * 100;
+        }
+      }
+
+      return {
+        category,
+        totalAmount,
+        borrowedAmount,
+        lentAmount,
+        expenseAmount,
+        count,
+        percentage,
+      };
+    }
   );
 
-  // Sort by absolute total amount (descending)
-  return result.sort(
-    (a, b) => Math.abs(b.totalAmount) - Math.abs(a.totalAmount)
-  );
-}
-
-export function getExpenseSummary(
-  transactions: Transaction[],
-  timeRange?: {
-    startDate: Date;
-    endDate: Date;
-  }
-): ExpenseSummary {
-  // Filter only expense transactions
-  let expenses = transactions.filter((t) => t.type === "expense");
-
-  // Apply time range filter if provided
-  if (timeRange) {
-    expenses = expenses.filter((t) => {
-      const transactionDate = new Date(t.date);
-      return isWithinInterval(transactionDate, {
-        start: timeRange.startDate,
-        end: timeRange.endDate,
-      });
-    });
-  }
-
-  // Calculate total expenses
-  const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
-
-  // Group by category
-  const categoryMap = new Map<TransactionCategory, number>();
-
-  // Initialize all categories with zero
-  const allCategories: TransactionCategory[] = [
-    "food",
-    "entertainment",
-    "rent",
-    "transportation",
-    "shopping",
-    "utilities",
-    "healthcare",
-    "education",
-    "travel",
-    "other",
-  ];
-  allCategories.forEach((category) => categoryMap.set(category, 0));
-
-  // Sum expenses by category
-  expenses.forEach((expense) => {
-    const category = expense.category || "other";
-    categoryMap.set(
-      category,
-      (categoryMap.get(category) || 0) + expense.amount
+  // Sort appropriately based on transaction type
+  if (filter?.transactionType === "expense") {
+    return result.sort((a, b) => b.expenseAmount - a.expenseAmount);
+  } else {
+    return result.sort(
+      (a, b) => Math.abs(b.totalAmount) - Math.abs(a.totalAmount)
     );
-  });
-
-  // Convert to array with percentages
-  const byCategory = Array.from(categoryMap.entries())
-    .map(([category, amount]) => ({
-      category,
-      amount,
-      percentage: totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0,
-    }))
-    .filter((item) => item.amount > 0) // Only include categories with expenses
-    .sort((a, b) => b.amount - a.amount); // Sort by amount descending
-
-  return {
-    totalExpenses,
-    byCategory,
-  };
+  }
 }

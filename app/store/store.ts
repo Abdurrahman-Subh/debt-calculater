@@ -1,22 +1,20 @@
+import { auth } from "@/app/lib/firebase";
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import {
-  Friend,
-  Transaction,
   DebtSummary,
   ExtendedDebtSummary,
+  Friend,
+  Transaction,
 } from "../types";
-import { persist } from "zustand/middleware";
-import { auth } from "@/app/lib/firebase";
 import {
-  isTransactionDue,
-  generateRecurringInstance,
-  calculateNextDate,
-} from "../utils/recurringTransactions";
-import {
-  createPartialPaymentTransaction,
   createExtendedDebtSummary,
-  getOutstandingDebtsForFriend,
+  createPartialPaymentTransaction,
 } from "../utils/debtCalculations";
+import {
+  generateRecurringInstance,
+  isTransactionDue,
+} from "../utils/recurringTransactions";
 
 interface DebtState {
   friends: Friend[];
@@ -112,10 +110,7 @@ const getCurrentUserId = (): string | null => {
 // Helper to add authorization header to fetch requests
 const addAuthHeader = (): HeadersInit => {
   const userId = getCurrentUserId();
-  console.log(
-    "Current user ID for request:",
-    userId ? "authenticated" : "not authenticated"
-  );
+
   return {
     "Content-Type": "application/json",
     Authorization: userId ? `Bearer ${userId}` : "",
@@ -138,18 +133,12 @@ export const useDebtStore = create<DebtState>()(
 
         // Wait for a brief moment to allow authentication to settle
         if (!userId) {
-          console.log(
-            "User not authenticated yet, waiting before fetching friends..."
-          );
           // If no user ID, first wait for a short time in case auth is still initializing
           await new Promise((resolve) => setTimeout(resolve, 500));
 
           // Check again after waiting
           const delayedUserId = getCurrentUserId();
           if (!delayedUserId) {
-            console.log(
-              "Still no user ID after waiting, aborting friends fetch"
-            );
             set({
               error: "You must be logged in to view friends",
               isLoading: false,
@@ -161,12 +150,10 @@ export const useDebtStore = create<DebtState>()(
 
         set({ isLoading: true, error: null, indexUrl: null });
         try {
-          console.log("Fetching friends from API...");
           const response = await fetch("/api/friends", {
             headers: addAuthHeader(),
           });
 
-          console.log("Friends response status:", response.status);
           if (!response.ok) {
             const errorData = await response.json();
             console.error("Friends API error:", errorData);
@@ -176,7 +163,6 @@ export const useDebtStore = create<DebtState>()(
           }
 
           const data = await response.json();
-          console.log(`Fetched ${data.length} friends successfully`);
           set({ friends: data, isLoading: false });
         } catch (error) {
           console.error("Error fetching friends:", error);
@@ -192,18 +178,12 @@ export const useDebtStore = create<DebtState>()(
 
         // Wait for a brief moment to allow authentication to settle
         if (!userId) {
-          console.log(
-            "User not authenticated yet, waiting before fetching transactions..."
-          );
           // If no user ID, first wait for a short time in case auth is still initializing
           await new Promise((resolve) => setTimeout(resolve, 500));
 
           // Check again after waiting
           const delayedUserId = getCurrentUserId();
           if (!delayedUserId) {
-            console.log(
-              "Still no user ID after waiting, aborting transaction fetch"
-            );
             set({
               error: "You must be logged in to view transactions",
               isLoading: false,
@@ -215,12 +195,10 @@ export const useDebtStore = create<DebtState>()(
 
         set({ isLoading: true, error: null, indexUrl: null });
         try {
-          console.log("Fetching transactions from API...");
           const response = await fetch("/api/transactions", {
             headers: addAuthHeader(),
           });
 
-          console.log("Transaction response status:", response.status);
           if (!response.ok) {
             const errorData = await response.json();
             console.error("Transaction API error:", errorData);
@@ -243,7 +221,6 @@ export const useDebtStore = create<DebtState>()(
           }
 
           const data = await response.json();
-          console.log(`Fetched ${data.length} transactions successfully`);
           set({ transactions: data, isLoading: false });
         } catch (error) {
           console.error("Error fetching transactions:", error);
@@ -476,8 +453,6 @@ export const useDebtStore = create<DebtState>()(
                   lastProcessedDate: today.toISOString(),
                 },
               });
-
-              console.log(`Processed recurring transaction: ${transaction.id}`);
             } catch (error) {
               console.error(
                 `Failed to process recurring transaction ${transaction.id}:`,

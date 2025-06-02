@@ -1,34 +1,51 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Toaster } from "@/components/ui/sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Banknote,
-  Plus,
-  Calendar,
-  BarChart3,
-  PieChart,
-  ListFilter,
-} from "lucide-react";
+import { Toaster } from "@/components/ui/sonner";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { useDebtStore } from "../store/store";
-import { formatCurrency } from "../utils/currency";
-import { getExpenseSummary, getCategoryStatistics } from "../utils/statistics";
-import TransactionForm from "../components/TransactionForm";
+import { motion } from "framer-motion";
+import {
+  Banknote,
+  BarChart3,
+  Calendar,
+  ListFilter,
+  PieChart,
+  Plus,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import CategoryFilter from "../components/CategoryFilter";
 import CategoryStatsChart from "../components/CategoryStatsChart";
 import TopCategoriesCards from "../components/TopCategoriesCards";
-import CategoryFilter from "../components/CategoryFilter";
+import TransactionForm from "../components/TransactionForm";
+import { useDebtStore } from "../store/store";
 import { TransactionCategory } from "../types";
+import { formatCurrency } from "../utils/currency";
+import { getCategoryStatistics, getExpenseSummary } from "../utils/statistics";
+
+// Helper to convert category codes to Turkish names
+function getCategoryLabel(category: TransactionCategory): string {
+  const labels: Record<TransactionCategory, string> = {
+    food: "Yemek",
+    entertainment: "Eğlence",
+    rent: "Kira",
+    transportation: "Ulaşım",
+    shopping: "Alışveriş",
+    utilities: "Faturalar",
+    healthcare: "Sağlık",
+    education: "Eğitim",
+    travel: "Seyahat",
+    other: "Diğer",
+  };
+  return labels[category] || category;
+}
 
 export default function ExpensesPage() {
   const { transactions, friends, addTransaction } = useDebtStore();
@@ -65,11 +82,14 @@ export default function ExpensesPage() {
   // Get all time expense summary
   const allTimeExpenseSummary = getExpenseSummary(expenseTransactions);
 
-  // Get category statistics for expenses only
+  // Get category statistics for expenses only - Modified for proper expense handling
+  const filteredExpenseTransactions =
+    selectedCategory === "all"
+      ? expenseTransactions
+      : expenseTransactions.filter((t) => t.category === selectedCategory);
+
   const expenseCategoryStats = getCategoryStatistics(
-    expenseTransactions.filter(
-      (t) => selectedCategory === "all" || t.category === selectedCategory
-    ),
+    filteredExpenseTransactions,
     {
       transactionType: "expense",
     }
@@ -119,13 +139,14 @@ export default function ExpensesPage() {
 
     return `${categoryNames[selectedCategory]} Kategorisi Harcamaları`;
   };
+  console.log(expenseSummary);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="space-y-8 p-4"
+      className="space-y-8 p-4 container mx-auto"
     >
       <div className="flex justify-between items-center">
         <h1 className="text-xl md:text-3xl font-bold flex items-center text-foreground">
@@ -174,7 +195,7 @@ export default function ExpensesPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              En Büyük Harcama Kategorisi
+              Bu Ayki En Büyük Harcama Kategorisi
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -228,10 +249,14 @@ export default function ExpensesPage() {
           <TopCategoriesCards
             data={expenseCategoryStats}
             limit={selectedCategory === "all" ? 4 : 1}
+            transactionType="expense"
           />
         </div>
 
-        <CategoryStatsChart data={expenseCategoryStats} />
+        <CategoryStatsChart
+          data={expenseCategoryStats}
+          transactionType="expense"
+        />
       </section>
 
       {/* New Expense Dialog */}
@@ -262,21 +287,4 @@ export default function ExpensesPage() {
       <Toaster />
     </motion.div>
   );
-}
-
-// Helper to convert category codes to Turkish names
-function getCategoryLabel(category: TransactionCategory): string {
-  const labels: Record<TransactionCategory, string> = {
-    food: "Yemek",
-    entertainment: "Eğlence",
-    rent: "Kira",
-    transportation: "Ulaşım",
-    shopping: "Alışveriş",
-    utilities: "Faturalar",
-    healthcare: "Sağlık",
-    education: "Eğitim",
-    travel: "Seyahat",
-    other: "Diğer",
-  };
-  return labels[category] || category;
 }

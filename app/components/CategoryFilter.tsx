@@ -31,7 +31,7 @@ const CategoryFilter = ({
 
   return (
     <Card className="mb-6">
-      <CardContent className="pt-6">
+      <CardContent>
         <div className="mb-2 text-sm font-medium">Kategori Filtrele</div>
         <div className="flex flex-wrap gap-2">
           {categoryOptions.map((option) => (

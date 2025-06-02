@@ -20,9 +20,13 @@ import { formatCurrency } from "../utils/currency";
 
 interface CategoryStatsChartProps {
   data: CategoryStats[];
+  transactionType?: "debt" | "expense";
 }
 
-const CategoryStatsChart = ({ data }: CategoryStatsChartProps) => {
+const CategoryStatsChart = ({
+  data,
+  transactionType = "debt",
+}: CategoryStatsChartProps) => {
   const [activeTab, setActiveTab] = useState<"pie" | "bar">("pie");
 
   // Category colors - align with your design system
@@ -75,12 +79,20 @@ const CategoryStatsChart = ({ data }: CategoryStatsChartProps) => {
           <p className="text-sm">
             Toplam: {formatCurrency(Math.abs(data.value))}
           </p>
-          <p className="text-sm text-success-600">
-            Alacak: {formatCurrency(data.borrowed)}
-          </p>
-          <p className="text-sm text-destructive">
-            Borç: {formatCurrency(data.lent)}
-          </p>
+          {transactionType === "debt" ? (
+            <>
+              <p className="text-sm text-success-600">
+                Alacak: {formatCurrency(data.borrowed)}
+              </p>
+              <p className="text-sm text-destructive">
+                Borç: {formatCurrency(data.lent)}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-primary">
+              Harcama: {formatCurrency(data.value)}
+            </p>
+          )}
         </div>
       );
     }
@@ -92,16 +104,22 @@ const CategoryStatsChart = ({ data }: CategoryStatsChartProps) => {
       return (
         <div className="bg-background border border-border p-3 rounded-md shadow-md">
           <p className="font-semibold">{payload[0].payload.name}</p>
-          {payload.map((entry: any) => (
-            <p
-              key={entry.name}
-              style={{ color: entry.color }}
-              className="text-sm"
-            >
-              {entry.name === "Alacak" ? "Alacak" : "Borç"}:{" "}
-              {formatCurrency(entry.value)}
+          {transactionType === "debt" ? (
+            payload.map((entry: any) => (
+              <p
+                key={entry.name}
+                style={{ color: entry.color }}
+                className="text-sm"
+              >
+                {entry.name === "Alacak" ? "Alacak" : "Borç"}:{" "}
+                {formatCurrency(entry.value)}
+              </p>
+            ))
+          ) : (
+            <p className="text-sm text-primary">
+              Harcama: {formatCurrency(payload[0].value)}
             </p>
-          ))}
+          )}
         </div>
       );
     }
@@ -174,7 +192,7 @@ const CategoryStatsChart = ({ data }: CategoryStatsChartProps) => {
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
               </PieChart>
-            ) : (
+            ) : transactionType === "debt" ? (
               <BarChart
                 data={chartData}
                 layout="vertical"
@@ -200,6 +218,29 @@ const CategoryStatsChart = ({ data }: CategoryStatsChartProps) => {
                   dataKey="lent"
                   name="Borç"
                   fill="var(--danger-500)"
+                  radius={[0, 4, 4, 0]}
+                />
+              </BarChart>
+            ) : (
+              <BarChart
+                data={chartData}
+                layout="vertical"
+                margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis type="number" tickFormatter={(value) => `${value} TL`} />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  tick={{ fontSize: 12 }}
+                  tickLine={false}
+                />
+                <Tooltip content={<BarTooltip />} />
+                <Legend />
+                <Bar
+                  dataKey="value"
+                  name="Harcama"
+                  fill="var(--primary-500)"
                   radius={[0, 4, 4, 0]}
                 />
               </BarChart>

@@ -57,7 +57,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center bg-gradient-to-b from-background to-gray-50">
+    <div className="flex flex-col items-center justify-center bg-gradient-to-b from-background to-gray-50 container mx-auto">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -100,6 +100,8 @@ export default function TransactionDetailClient({
         return "Borç Alma";
       case "payment":
         return "Ödeme";
+      case "expense":
+        return "Harcama";
       default:
         return "";
     }
@@ -113,6 +115,8 @@ export default function TransactionDetailClient({
         return <PiggyBank className="h-5 w-5 text-rose-600" />;
       case "payment":
         return <CreditCard className="h-5 w-5 text-slate-600" />;
+      case "expense":
+        return <Banknote className="h-5 w-5 text-purple-600" />;
       default:
         return null;
     }
@@ -155,6 +159,22 @@ export default function TransactionDetailClient({
     },
     [transaction, updateTransaction]
   );
+
+  const getCategoryLabel = (category: string) => {
+    const labels: Record<string, string> = {
+      food: "Yemek",
+      entertainment: "Eğlence",
+      rent: "Kira",
+      transportation: "Ulaşım",
+      shopping: "Alışveriş",
+      utilities: "Faturalar",
+      healthcare: "Sağlık",
+      education: "Eğitim",
+      travel: "Seyahat",
+      other: "Diğer",
+    };
+    return labels[category] || category;
+  };
 
   if (isLoading) {
     return (
@@ -232,7 +252,7 @@ export default function TransactionDetailClient({
         </p>
       </div>
 
-      <Card className="overflow-hidden mb-6">
+      <Card className="overflow-hidden mb-6 py-0">
         <CardContent className="p-0">
           <div
             className={`p-6 ${
@@ -240,7 +260,11 @@ export default function TransactionDetailClient({
                 ? "bg-success-50"
                 : transaction.type === "lent"
                 ? "bg-destructive/10"
-                : "bg-primary/10"
+                : transaction.type === "payment"
+                ? "bg-primary/10"
+                : transaction.type === "expense"
+                ? "bg-purple-50"
+                : "bg-gray-50"
             }`}
           >
             <div className="text-3xl font-bold mb-2">
@@ -259,16 +283,22 @@ export default function TransactionDetailClient({
                   {formatCurrency(transaction.amount, true)}
                 </span>
               )}
+              {transaction.type === "expense" && (
+                <span className="text-purple-600">
+                  -{formatCurrency(transaction.amount, true)}
+                </span>
+              )}
             </div>
 
             {/* Display the category if present */}
             {transaction.category && (
               <div className="mb-4 inline-block px-3 py-1 rounded-full text-sm font-medium bg-muted">
-                <span>Kategori: {transaction.category}</span>
+                <span>Kategori: {getCategoryLabel(transaction.category)}</span>
               </div>
             )}
 
-            {friend && (
+            {/* Only show friend info for non-expense transactions */}
+            {friend && transaction.type !== "expense" && (
               <div className="flex items-center p-3 bg-background rounded-lg border">
                 <div className="bg-primary/10 p-1.5 rounded-full mr-2">
                   <User className="h-4 w-4 text-primary" />
