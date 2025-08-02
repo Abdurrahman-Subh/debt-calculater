@@ -44,7 +44,7 @@ const FriendForm = ({
     try {
       if (isEditing && initialFriend && onUpdateFriend) {
         await onUpdateFriend(initialFriend.id, name.trim());
-        toast.success("Arkadaş başarıyla güncellendi");
+        // Don't show toast here - let parent component handle it
       } else {
         await onAddFriend({ name: name.trim() });
         // Reset only when adding, not when editing

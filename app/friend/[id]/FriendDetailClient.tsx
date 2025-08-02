@@ -32,7 +32,7 @@ import {
 } from "../../types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -133,10 +133,16 @@ export default function FriendDetailClient({
     setIsDeleteDialogOpen(false);
   };
 
-  const handleDeleteConfirm = () => {
-    deleteFriend(friendSummary.friendId);
-    setIsDeleteDialogOpen(false);
-    router.push("/");
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteFriend(friendSummary.friendId);
+      setIsDeleteDialogOpen(false);
+      toast.success(`${friendSummary.friendName} başarıyla silindi`);
+      router.push("/");
+    } catch (error) {
+      toast.error("Kişi silinirken bir hata oluştu");
+      console.error("Error deleting friend:", error);
+    }
   };
 
   // Handle adding a transaction with immediate UI update
@@ -156,6 +162,22 @@ export default function FriendDetailClient({
     description?: string
   ) => {
     await makePartialPayment(debtId, amount, description);
+    
+    // Refresh the extended summary to reflect the payment
+    const extended = getExtendedDebtSummary(friendId);
+    setExtendedSummary(extended);
+    
+    // Also refresh the debt summary
+    const summaries = getDebtSummaries();
+    const summary = summaries.find((s) => s.friendId === friendId);
+    if (summary) {
+      setFriendSummary(summary);
+    }
+    
+    // Refresh transactions
+    const allTransactions = getTransactionsForFriend(friendId);
+    setTransactions(allTransactions);
+    setFilteredTransactions(allTransactions);
   };
 
   return (
@@ -358,7 +380,17 @@ export default function FriendDetailClient({
           <div className="py-4">
             <FriendForm
               onAddFriend={() => Promise.resolve({} as Friend)} // Not used
-              onUpdateFriend={updateFriend}
+              onUpdateFriend={async (id, name) => {
+                try {
+                  const updatedFriend = await updateFriend(id, name);
+                  setIsEditDialogOpen(false); // Close dialog after successful update
+                  toast.success("Kişi başarıyla güncellendi");
+                  return updatedFriend;
+                } catch (error) {
+                  toast.error("Kişi güncellenirken bir hata oluştu");
+                  throw error;
+                }
+              }}
               initialFriend={{
                 id: friendSummary.friendId,
                 name: friendSummary.friendName,

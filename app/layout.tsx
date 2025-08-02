@@ -78,7 +78,7 @@ export default function RootLayout({
         <AuthProvider>
           <Header />
 
-          <main className="mx-auto py-0 relative">{children}</main>
+          <main className="mx-auto py-0 relative px-4">{children}</main>
 
           <footer className="py-6 border-t border-border mt-2">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-muted-foreground">
